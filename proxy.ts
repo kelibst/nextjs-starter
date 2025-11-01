@@ -12,10 +12,11 @@ import {
 } from "./lib/auth/middleware";
 
 /**
- * Next.js Middleware
+ * Next.js Proxy (formerly Middleware)
  * Handles authentication and authorization for all routes
+ * Runs at the Edge Runtime as a network boundary proxy
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check authentication status
@@ -53,8 +54,8 @@ export async function middleware(request: NextRequest) {
 }
 
 /**
- * Middleware configuration
- * Specify which routes should run through middleware
+ * Proxy configuration
+ * Specify which routes should run through proxy
  */
 export const config = {
   matcher: [
