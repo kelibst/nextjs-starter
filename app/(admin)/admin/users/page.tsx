@@ -7,6 +7,7 @@ import { EditUserDialog } from "@/components/admin/edit-user-dialog";
 import { DeleteUserDialog } from "@/components/admin/delete-user-dialog";
 import { BulkDeleteDialog } from "@/components/admin/bulk-delete-dialog";
 import { InviteUserDialog } from "@/components/admin/invite-user-dialog";
+import { ExportUsersButton } from "@/components/admin/export-users-button";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -101,10 +102,13 @@ export default function UsersPage() {
             View, search, and manage all user accounts.
           </p>
         </div>
-        <Button onClick={() => setShowInviteDialog(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Invite User
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportUsersButton users={users} />
+          <Button onClick={() => setShowInviteDialog(true)}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Invite User
+          </Button>
+        </div>
       </div>
 
       <Card>
