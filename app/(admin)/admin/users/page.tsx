@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UsersTable } from "@/components/admin/users-table";
+import { EditUserDialog } from "@/components/admin/edit-user-dialog";
+import { DeleteUserDialog } from "@/components/admin/delete-user-dialog";
+import { BulkDeleteDialog } from "@/components/admin/bulk-delete-dialog";
 import { toast } from "sonner";
 
 interface User {
@@ -17,6 +20,11 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Dialog states
+  const [editUser, setEditUser] = useState<User | null>(null);
+  const [deleteUser, setDeleteUser] = useState<User | null>(null);
+  const [bulkDeleteIds, setBulkDeleteIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchUsers();
@@ -43,18 +51,19 @@ export default function UsersPage() {
   }
 
   const handleEdit = (user: User) => {
-    // Will be implemented in Phase 5
-    toast.info(`Edit user: ${user.username} (Coming in Phase 5)`);
+    setEditUser(user);
   };
 
   const handleDelete = (user: User) => {
-    // Will be implemented in Phase 5
-    toast.info(`Delete user: ${user.username} (Coming in Phase 5)`);
+    setDeleteUser(user);
   };
 
   const handleBulkDelete = (userIds: string[]) => {
-    // Will be implemented in Phase 5
-    toast.info(`Bulk delete ${userIds.length} users (Coming in Phase 5)`);
+    setBulkDeleteIds(userIds);
+  };
+
+  const handleSuccess = () => {
+    fetchUsers(); // Refresh the user list
   };
 
   if (loading) {
@@ -104,6 +113,30 @@ export default function UsersPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Edit User Dialog */}
+      <EditUserDialog
+        user={editUser}
+        open={!!editUser}
+        onOpenChange={(open) => !open && setEditUser(null)}
+        onSuccess={handleSuccess}
+      />
+
+      {/* Delete User Dialog */}
+      <DeleteUserDialog
+        user={deleteUser}
+        open={!!deleteUser}
+        onOpenChange={(open) => !open && setDeleteUser(null)}
+        onSuccess={handleSuccess}
+      />
+
+      {/* Bulk Delete Dialog */}
+      <BulkDeleteDialog
+        userIds={bulkDeleteIds}
+        open={bulkDeleteIds.length > 0}
+        onOpenChange={(open) => !open && setBulkDeleteIds([])}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 }
