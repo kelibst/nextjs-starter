@@ -128,8 +128,8 @@ class RefreshTokenRepository extends BaseRepository<RefreshToken, typeof prisma.
     });
 
     return this.transaction(async (tx) => {
-      // Delete old token
-      await tx.refreshToken.delete({
+      // Delete old token (using deleteMany for idempotency - won't fail if token doesn't exist)
+      await tx.refreshToken.deleteMany({
         where: { id: oldTokenId },
       });
 

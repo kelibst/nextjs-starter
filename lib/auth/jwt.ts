@@ -6,6 +6,7 @@ import {
   JWT_REFRESH_SECRET,
   JWT_REFRESH_EXPIRY,
 } from "./constants";
+import { randomBytes } from "crypto";
 
 /**
  * Convert time string (e.g., "15m", "7d") to seconds
@@ -62,8 +63,12 @@ export async function generateRefreshToken(payload: TokenPayload): Promise<strin
   const secret = new TextEncoder().encode(JWT_REFRESH_SECRET);
   const expirySeconds = parseExpiryTime(JWT_REFRESH_EXPIRY);
 
+  // Generate unique JWT ID to prevent token collisions
+  const jti = randomBytes(16).toString('hex');
+
   const token = await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
+    .setJti(jti) // Add unique JWT ID
     .setIssuedAt()
     .setExpirationTime(Math.floor(Date.now() / 1000) + expirySeconds)
     .sign(secret);

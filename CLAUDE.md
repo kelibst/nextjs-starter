@@ -13,6 +13,8 @@ This file provides context for AI assistants working on this Next.js Authenticat
 
 ### 1. **Always Update ACTIVITIES.md**
 - **Location:** [plan/ACTIVITIES.md](plan/ACTIVITIES.md)
+- Keep the update to maximum 3 lines for each new update.
+- After every significant changes commit and remind the user to push to the branch.
 - **When:** After completing any significant task or feature
 - **Format:** Follow the existing structure with date, description, technical notes
 - **Example Entry:**
