@@ -9,6 +9,7 @@ import {
   errorResponse,
   handleApiError,
 } from "@/lib/api/response";
+import { logAuth, ActivityAction } from "@/lib/utils/activity-logger";
 
 /**
  * POST /api/auth/register
@@ -45,6 +46,12 @@ export async function POST(request: NextRequest) {
 
     // Create session (auto-login after registration)
     await createSession(user.id, user.role);
+
+    // Log registration
+    await logAuth(ActivityAction.REGISTER, user.id, {
+      username: user.username,
+      email: user.email,
+    });
 
     // Return user data (already safe from repository)
     return successResponse(

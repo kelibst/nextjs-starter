@@ -8,6 +8,7 @@ import {
   errorResponse,
   handleApiError,
 } from "@/lib/api/response";
+import { logAuth, ActivityAction } from "@/lib/utils/activity-logger";
 
 /**
  * POST /api/auth/login
@@ -24,6 +25,11 @@ export async function POST(request: NextRequest) {
 
     // Check if user exists
     if (!user) {
+      // Log failed login attempt
+      await logAuth(ActivityAction.LOGIN_FAILED, undefined, {
+        emailOrUsername: validatedData.emailOrUsername,
+        reason: "User not found",
+      });
       return errorResponse("Invalid email/username or password", 401);
     }
 
@@ -34,11 +40,18 @@ export async function POST(request: NextRequest) {
     );
 
     if (!isPasswordValid) {
+      // Log failed login attempt
+      await logAuth(ActivityAction.LOGIN_FAILED, user.id, {
+        reason: "Invalid password",
+      });
       return errorResponse("Invalid email/username or password", 401);
     }
 
     // Create session
     await createSession(user.id, user.role);
+
+    // Log successful login
+    await logAuth(ActivityAction.LOGIN, user.id);
 
     // Return user data (remove password)
     const { password: _, ...safeUser } = user;
