@@ -9,6 +9,7 @@ import {
   forbiddenResponse,
   handleApiError,
 } from "@/lib/api/response";
+import { logActivity, ActivityAction } from "@/lib/utils/activity-logger";
 
 /**
  * GET /api/users/:id
@@ -96,6 +97,18 @@ export async function PATCH(
     // Update user
     const updatedUser = await userRepository.updateUser(id, validatedData);
 
+    // Log user update
+    await logActivity({
+      userId: currentUser.id,
+      action: ActivityAction.USER_UPDATE,
+      resource: "users",
+      resourceId: id,
+      details: {
+        targetUser: targetUser.username,
+        updatedFields: Object.keys(validatedData),
+      },
+    });
+
     return successResponse({
       message: "User updated successfully",
       user: updatedUser,
@@ -133,6 +146,18 @@ export async function DELETE(
 
     // Delete user (refresh tokens will be cascade deleted)
     await userRepository.deleteUser(id);
+
+    // Log user deletion
+    await logActivity({
+      userId: currentUser.id,
+      action: ActivityAction.USER_DELETE,
+      resource: "users",
+      resourceId: id,
+      details: {
+        deletedUser: user.username,
+        deletedEmail: user.email,
+      },
+    });
 
     return successResponse({
       message: "User deleted successfully",

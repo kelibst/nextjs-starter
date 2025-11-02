@@ -8,6 +8,7 @@ import {
   errorResponse,
   handleApiError,
 } from "@/lib/api/response";
+import { logAuth, ActivityAction } from "@/lib/utils/activity-logger";
 
 /**
  * PATCH /api/users/me/password
@@ -45,6 +46,9 @@ export async function PATCH(request: NextRequest) {
     await userRepository.updateUser(user.id, {
       password: hashedNewPassword,
     });
+
+    // Log password change
+    await logAuth(ActivityAction.PASSWORD_CHANGE, user.id);
 
     // Optionally invalidate all refresh tokens to force re-login on all devices
     // Uncomment to enable this security feature:

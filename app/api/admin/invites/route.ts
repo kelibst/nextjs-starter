@@ -4,6 +4,7 @@ import { requireRole, getCurrentUser } from "@/lib/auth/session";
 import { Role } from "@prisma/client";
 import { successResponse, handleApiError } from "@/lib/api/response";
 import { userRepository, inviteRepository } from "@/lib/repositories";
+import { logActivity, ActivityAction } from "@/lib/utils/activity-logger";
 
 const createInviteSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -54,6 +55,18 @@ export async function POST(request: NextRequest) {
       role: data.role as Role,
       expiresAt,
       createdBy: currentUser!.id,
+    });
+
+    // Log invite creation
+    await logActivity({
+      userId: currentUser!.id,
+      action: ActivityAction.INVITE_CREATE,
+      resource: "invites",
+      resourceId: invite.id,
+      details: {
+        email: data.email,
+        role: data.role,
+      },
     });
 
     // In a production app, you would send an email here
