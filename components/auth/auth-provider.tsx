@@ -29,6 +29,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Refresh access token using refresh token
+  const refreshToken = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/auth/refresh", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        // Token refreshed successfully - fetch user data
+        const userResponse = await fetch("/api/auth/me");
+        if (userResponse.ok) {
+          const data = await userResponse.json();
+          setUser(data.data.user);
+          return true;
+        }
+      }
+
+      // Refresh failed - logout user
+      setUser(null);
+      return false;
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      setUser(null);
+      return false;
+    }
+  }, []);
+
   // Fetch current user on mount
   const fetchUser = useCallback(async () => {
     try {
@@ -37,6 +64,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (response.ok) {
         const data = await response.json();
         setUser(data.data.user);
+      } else if (response.status === 401) {
+        // Unauthorized - try to refresh token
+        const refreshed = await refreshToken();
+        if (!refreshed) {
+          setUser(null);
+        }
       } else {
         setUser(null);
       }
@@ -46,11 +79,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [refreshToken]);
 
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  // Proactive token refresh - refresh every 10 minutes (before 15min expiration)
+  useEffect(() => {
+    if (!user) return;
+
+    // Refresh token every 10 minutes to prevent expiration
+    // Access tokens expire in 15 minutes, so this keeps them fresh
+    const refreshInterval = setInterval(() => {
+      refreshToken();
+    }, 10 * 60 * 1000); // 10 minutes in milliseconds
+
+    return () => clearInterval(refreshInterval);
+  }, [user, refreshToken]);
 
   // Login function
   const login = async (emailOrUsername: string, password: string) => {
@@ -67,7 +113,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     setUser(data.data.user);
-    router.push("/dashboard");
+
+    // Smart redirect based on user role and intended destination
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get("from");
+    const userRole = data.data.user.role;
+
+    // If user was trying to go somewhere specific
+    if (from && from !== "/login" && from !== "/register") {
+      // Check if it's an admin route
+      if (from.startsWith("/admin")) {
+        // Only redirect to admin if user has permission
+        if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+          router.push(from);
+          return;
+        }
+        // User doesn't have admin access, go to dashboard
+        router.push("/dashboard");
+        return;
+      }
+      // Non-admin route - redirect there
+      router.push(from);
+      return;
+    }
+
+    // No 'from' param - use role-based default
+    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+      router.push("/admin");
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   // Register function
@@ -90,6 +165,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     setUser(data.data.user);
+
+    // Check for redirect destination
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get("from");
+
+    // If user was trying to go somewhere specific (non-auth page)
+    if (from && from !== "/login" && from !== "/register") {
+      router.push(from);
+      return;
+    }
+
+    // Default: new users always go to dashboard
     router.push("/dashboard");
   };
 

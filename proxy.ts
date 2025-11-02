@@ -4,12 +4,11 @@ import { Role } from "@prisma/client";
 import {
   checkAuth,
   isProtectedRoute,
-  isPublicRoute,
   isAdminRoute,
   redirectToLogin,
-  redirectToDashboard,
   hasRole,
 } from "./lib/auth/middleware";
+import { ADMIN_BASE_PATH } from "./lib/auth/constants";
 
 /**
  * Next.js Proxy (formerly Middleware)
@@ -44,9 +43,17 @@ export async function proxy(request: NextRequest) {
   }
 
   // Handle public auth pages (login, register)
-  // If already authenticated, redirect to dashboard
-  if (isPublicRoute(pathname) && pathname !== "/" && authResult.authenticated) {
-    return redirectToDashboard(request);
+  // If already authenticated, redirect to appropriate dashboard based on role
+  const authPages = ["/login", "/register"];
+  if (authPages.includes(pathname) && authResult.authenticated) {
+    const userRole = authResult.role as Role;
+
+    // Redirect admins to admin panel, regular users to dashboard
+    if (hasRole(userRole, [Role.ADMIN, Role.SUPER_ADMIN])) {
+      return NextResponse.redirect(new URL(ADMIN_BASE_PATH, request.url));
+    }
+
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   // Allow request to continue

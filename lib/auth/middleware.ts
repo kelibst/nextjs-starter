@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Role } from "@prisma/client";
-import { verifyAccessToken } from "./jwt";
+import { verifyAccessToken, verifyRefreshToken } from "./jwt";
 import { COOKIE_NAMES, ADMIN_BASE_PATH } from "./constants";
 
 /**
@@ -14,8 +14,44 @@ export interface AuthMiddlewareResult {
 }
 
 /**
+ * Attempt to verify refresh token for authentication
+ * Used as fallback when access token is missing or invalid
+ *
+ * @param request - Next.js request object
+ * @returns Promise resolving to auth middleware result
+ */
+export async function checkRefreshToken(request: NextRequest): Promise<AuthMiddlewareResult> {
+  try {
+    const refreshToken = request.cookies.get(COOKIE_NAMES.REFRESH_TOKEN)?.value;
+
+    if (!refreshToken) {
+      return {
+        authenticated: false,
+        error: "No refresh token found",
+      };
+    }
+
+    // Verify refresh token (can't refresh here, but at least check if valid)
+    const payload = await verifyRefreshToken(refreshToken);
+
+    return {
+      authenticated: true,
+      userId: payload.userId,
+      role: payload.role,
+    };
+  } catch (error) {
+    return {
+      authenticated: false,
+      error: "Refresh token invalid or expired",
+    };
+  }
+}
+
+/**
  * Check if request is authenticated
- * Extracts and verifies JWT access token from cookies
+ * First tries access token, then falls back to refresh token verification
+ * Note: This doesn't automatically refresh tokens (middleware can't set cookies)
+ * Client must call /api/auth/refresh to get new tokens
  *
  * @param request - Next.js request object
  * @returns Promise resolving to auth middleware result
@@ -25,10 +61,8 @@ export async function checkAuth(request: NextRequest): Promise<AuthMiddlewareRes
     const accessToken = request.cookies.get(COOKIE_NAMES.ACCESS_TOKEN)?.value;
 
     if (!accessToken) {
-      return {
-        authenticated: false,
-        error: "No access token found",
-      };
+      // No access token - check if refresh token is valid
+      return await checkRefreshToken(request);
     }
 
     // Verify access token
@@ -40,10 +74,8 @@ export async function checkAuth(request: NextRequest): Promise<AuthMiddlewareRes
       role: payload.role,
     };
   } catch (error) {
-    return {
-      authenticated: false,
-      error: error instanceof Error ? error.message : "Invalid token",
-    };
+    // Access token invalid/expired - check refresh token
+    return await checkRefreshToken(request);
   }
 }
 
@@ -128,6 +160,38 @@ export function redirectToLogin(request: NextRequest, reason?: string): NextResp
  */
 export function redirectToDashboard(request: NextRequest): NextResponse {
   return NextResponse.redirect(new URL("/dashboard", request.url));
+}
+
+/**
+ * Determine where to redirect user after successful authentication
+ * Checks 'from' query param, then uses role-based defaults
+ *
+ * @param from - The page user was trying to access (from query param)
+ * @param userRole - User's role
+ * @returns Redirect path
+ */
+export function getPostLoginRedirect(from: string | null, userRole: Role): string {
+  // Check if there's a 'from' parameter (where user was trying to go)
+  if (from && from !== "/login" && from !== "/register") {
+    // Validate that user has permission to access 'from' route
+    if (from.startsWith(ADMIN_BASE_PATH)) {
+      // Admin route - only allow if user has admin role
+      if (hasRole(userRole, [Role.ADMIN, Role.SUPER_ADMIN])) {
+        return from;
+      }
+      // User doesn't have admin access, redirect to dashboard
+      return "/dashboard";
+    }
+    // Non-admin protected route - allow access
+    return from;
+  }
+
+  // No 'from' param - use role-based default
+  if (hasRole(userRole, [Role.ADMIN, Role.SUPER_ADMIN])) {
+    return ADMIN_BASE_PATH;
+  }
+
+  return "/dashboard";
 }
 
 /**
