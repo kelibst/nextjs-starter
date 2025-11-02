@@ -38,6 +38,14 @@ export function formatRelativeTime(date: Date | string): string {
 }
 
 /**
+ * Format a date as distance to now (e.g., "2 hours ago", "in 3 days")
+ * Alias for formatRelativeTime for better naming consistency
+ */
+export function formatDistanceToNow(date: Date | string): string {
+  return formatRelativeTime(date);
+}
+
+/**
  * Safely parse JSON with a fallback value
  */
 export function safeJsonParse<T>(json: string, fallback: T): T {
