@@ -33,7 +33,7 @@ export function AppearanceSettings() {
           >
             <Label
               htmlFor="light"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"
+              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-all duration-200 active:scale-95 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
             >
               <RadioGroupItem value="light" id="light" className="sr-only" />
               <Sun className="mb-3 h-6 w-6" />
@@ -42,7 +42,7 @@ export function AppearanceSettings() {
 
             <Label
               htmlFor="dark"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"
+              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-all duration-200 active:scale-95 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
             >
               <RadioGroupItem value="dark" id="dark" className="sr-only" />
               <Moon className="mb-3 h-6 w-6" />
@@ -51,7 +51,7 @@ export function AppearanceSettings() {
 
             <Label
               htmlFor="system"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"
+              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-all duration-200 active:scale-95 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
             >
               <RadioGroupItem value="system" id="system" className="sr-only" />
               <Monitor className="mb-3 h-6 w-6" />

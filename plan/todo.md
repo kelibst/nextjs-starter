@@ -1,3 +1,5 @@
 let's review our initial plan, and seed how far we have come. base on our currently implementations. lets reviww the @IMPLEMENTATION_PLAN.md and see features, we need to add and those that we need to improve and update the plan. let's plan first.
 
 This is a nextjs prisma app, we have some serious security risks. such as we have the prisma being called everywhere. I want to restrict access to the database from the prisma instance into a specific field what could be the rational for that? let's plan and how can we implement it? 
+
+awesome, here I need to add theme selection. we need to make a great plan so that the user can select a theme they want during development and even they can still choose themes later on on the dashboard. but the theme they select will use consistent colors and fonts and all. so how can we achieve that? is development theme selection better? so that it will be easier to implement. 

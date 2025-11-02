@@ -76,6 +76,14 @@ This file tracks major features and changes implemented in the Next.js Authentic
 **Description:** Fixed CSS compilation error `Cannot apply unknown utility class 'border-border'`.
 **Resolution:** Removed `@layer base` and `@apply` directives, replaced with direct CSS using `hsl(var(--variable))`
 
+### 🎨 UI Enhancement: Visual Feedback & Dark Mode Shadows
+**Description:** Improved UX with hover/active states for all navigation links and enhanced shadow visibility in dark mode.
+**Changes:** Added hover backgrounds, active scale animations, enhanced dark mode shadows (0.5-0.9 opacity), configured Tailwind shadow utilities
+
+### 🔧 Critical Fix: Tailwind v4 Color Utilities
+**Description:** Fixed missing hover/active states - Tailwind v4 wasn't generating color utilities (bg-accent, text-primary, etc).
+**Resolution:** Added explicit `--color-*` definitions in `@theme inline` block for all Shadcn colors, enhanced theme cards with transitions and active states
+
 ---
 
 ## Current Status
