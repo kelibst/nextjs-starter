@@ -26,6 +26,7 @@ model User {
 
   // Relations
   refreshTokens RefreshToken[]
+  invites       Invite[]
 
   @@index([email])
   @@index([username])
@@ -45,6 +46,24 @@ model RefreshToken {
   @@index([userId])
   @@index([token])
   @@map("refresh_tokens")
+}
+
+model Invite {
+  id        String    @id @default(cuid())
+  email     String
+  role      Role      @default(USER)
+  token     String    @unique @default(cuid())
+  expiresAt DateTime
+  createdBy String
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+
+  // Relations
+  creator User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([email])
+  @@map("invites")
 }
 
 // ============================================================================

@@ -6,6 +6,9 @@ import { UsersTable } from "@/components/admin/users-table";
 import { EditUserDialog } from "@/components/admin/edit-user-dialog";
 import { DeleteUserDialog } from "@/components/admin/delete-user-dialog";
 import { BulkDeleteDialog } from "@/components/admin/bulk-delete-dialog";
+import { InviteUserDialog } from "@/components/admin/invite-user-dialog";
+import { Button } from "@/components/ui/button";
+import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 interface User {
@@ -25,6 +28,7 @@ export default function UsersPage() {
   const [editUser, setEditUser] = useState<User | null>(null);
   const [deleteUser, setDeleteUser] = useState<User | null>(null);
   const [bulkDeleteIds, setBulkDeleteIds] = useState<string[]>([]);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -90,11 +94,17 @@ export default function UsersPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-        <p className="text-muted-foreground">
-          View, search, and manage all user accounts.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+          <p className="text-muted-foreground">
+            View, search, and manage all user accounts.
+          </p>
+        </div>
+        <Button onClick={() => setShowInviteDialog(true)}>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Invite User
+        </Button>
       </div>
 
       <Card>
@@ -135,6 +145,13 @@ export default function UsersPage() {
         userIds={bulkDeleteIds}
         open={bulkDeleteIds.length > 0}
         onOpenChange={(open) => !open && setBulkDeleteIds([])}
+        onSuccess={handleSuccess}
+      />
+
+      {/* Invite User Dialog */}
+      <InviteUserDialog
+        open={showInviteDialog}
+        onOpenChange={setShowInviteDialog}
         onSuccess={handleSuccess}
       />
     </div>
