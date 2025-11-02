@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Role } from "@prisma/client";
 import { verifyAccessToken } from "./jwt";
-import { COOKIE_NAMES } from "./constants";
+import { COOKIE_NAMES, ADMIN_BASE_PATH } from "./constants";
 
 /**
  * Auth middleware result
@@ -60,18 +60,14 @@ export function hasRole(userRole: Role, allowedRoles: Role[]): boolean {
 
 /**
  * Protected route patterns that require authentication
+ * Note: ADMIN_BASE_PATH is added dynamically in isProtectedRoute()
  */
-export const PROTECTED_ROUTES = ["/dashboard", "/profile", "/admin"];
+export const PROTECTED_ROUTES = ["/dashboard", "/profile"];
 
 /**
  * Public route patterns that don't require authentication
  */
-export const PUBLIC_ROUTES = ["/", "/login", "/register"];
-
-/**
- * Admin-only route patterns
- */
-export const ADMIN_ROUTES = ["/admin"];
+export const PUBLIC_ROUTES = ["/", "/login", "/register", "/invite"];
 
 /**
  * Check if a path is protected
@@ -80,6 +76,10 @@ export const ADMIN_ROUTES = ["/admin"];
  * @returns Boolean indicating if path is protected
  */
 export function isProtectedRoute(path: string): boolean {
+  // Check if path starts with admin base path (configurable)
+  if (path.startsWith(ADMIN_BASE_PATH)) {
+    return true;
+  }
   return PROTECTED_ROUTES.some((route) => path.startsWith(route));
 }
 
@@ -95,12 +95,13 @@ export function isPublicRoute(path: string): boolean {
 
 /**
  * Check if a path requires admin role
+ * Uses configurable ADMIN_BASE_PATH from environment
  *
  * @param path - Request path
  * @returns Boolean indicating if path requires admin
  */
 export function isAdminRoute(path: string): boolean {
-  return ADMIN_ROUTES.some((route) => path.startsWith(route));
+  return path.startsWith(ADMIN_BASE_PATH);
 }
 
 /**

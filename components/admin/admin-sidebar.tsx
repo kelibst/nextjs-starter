@@ -4,55 +4,57 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { Home, User, Settings, Shield } from "lucide-react";
+import { LayoutDashboard, Users, Activity, Settings, Shield } from "lucide-react";
 import { Role } from "@prisma/client";
 import { getAdminPath } from "@/lib/auth/constants";
 
-interface NavItem {
+interface AdminNavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   roles?: Role[];
 }
 
-const navItems: NavItem[] = [
+const adminNavItems: AdminNavItem[] = [
   {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: Home,
+    title: "Overview",
+    href: getAdminPath(),
+    icon: LayoutDashboard,
   },
   {
-    title: "Profile",
-    href: "/dashboard/profile",
-    icon: User,
+    title: "Users",
+    href: getAdminPath("/users"),
+    icon: Users,
+  },
+  {
+    title: "Activity Logs",
+    href: getAdminPath("/logs"),
+    icon: Activity,
+    roles: [Role.SUPER_ADMIN], // Only super admins can view logs
   },
   {
     title: "Settings",
-    href: "/dashboard/settings",
+    href: getAdminPath("/settings"),
     icon: Settings,
-  },
-  {
-    title: "Admin Panel",
-    href: getAdminPath(),
-    icon: Shield,
-    roles: [Role.ADMIN, Role.SUPER_ADMIN],
+    roles: [Role.SUPER_ADMIN],
   },
 ];
 
-export function DashboardSidebar() {
+export function AdminSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const filteredItems = navItems.filter((item) => {
+  const filteredItems = adminNavItems.filter((item) => {
     if (!item.roles) return true;
     return user && item.roles.includes(user.role);
   });
 
   return (
-    <div className="flex h-full flex-col gap-2">
+    <div className="flex h-full flex-col gap-2 border-r bg-muted/40">
       <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-          <span>Menu</span>
+        <Link href={getAdminPath()} className="flex items-center gap-2 font-semibold">
+          <Shield className="h-6 w-6" />
+          <span>Admin Panel</span>
         </Link>
       </div>
       <div className="flex-1">
@@ -76,6 +78,15 @@ export function DashboardSidebar() {
             );
           })}
         </nav>
+      </div>
+      <div className="mt-auto p-4 border-t">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all hover:text-primary"
+        >
+          <LayoutDashboard className="h-4 w-4" />
+          Back to Dashboard
+        </Link>
       </div>
     </div>
   );
