@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireRole, getCurrentUser } from "@/lib/auth/session";
 import { Role } from "@prisma/client";
 import { successResponse, handleApiError } from "@/lib/api/response";
-import { prisma } from "@/lib/db/prisma";
+import { userRepository, inviteRepository } from "@/lib/repositories";
 
 const createInviteSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -26,11 +26,9 @@ export async function POST(request: NextRequest) {
     const data = createInviteSchema.parse(body);
 
     // Check if email already has an account
-    const existingUser = await prisma.user.findUnique({
-      where: { email: data.email },
-    });
+    const emailExists = await userRepository.emailExists(data.email);
 
-    if (existingUser) {
+    if (emailExists) {
       return Response.json(
         { success: false, error: "A user with this email already exists" },
         { status: 400 }
@@ -38,13 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if there's already a pending invite
-    const existingInvite = await prisma.invite.findFirst({
-      where: {
-        email: data.email,
-        usedAt: null,
-        expiresAt: { gt: new Date() },
-      },
-    });
+    const existingInvite = await inviteRepository.findByEmail(data.email);
 
     if (existingInvite) {
       return Response.json(
@@ -57,13 +49,11 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    const invite = await prisma.invite.create({
-      data: {
-        email: data.email,
-        role: data.role,
-        expiresAt,
-        createdBy: currentUser!.id,
-      },
+    const invite = await inviteRepository.createInvite({
+      email: data.email,
+      role: data.role as Role,
+      expiresAt,
+      createdBy: currentUser!.id,
     });
 
     // In a production app, you would send an email here
@@ -94,17 +84,9 @@ export async function GET(request: NextRequest) {
   try {
     await requireRole(Role.ADMIN, Role.SUPER_ADMIN);
 
-    const invites = await prisma.invite.findMany({
-      include: {
-        creator: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
+    const invites = await inviteRepository.getAllInvites({
+      includeUsed: true,
+      includeExpired: true,
     });
 
     return successResponse({ invites });

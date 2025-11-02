@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import prisma from "@/lib/db/prisma";
-import { requireAuth, toSessionUser } from "@/lib/auth/session";
+import { userRepository } from "@/lib/repositories";
+import { requireAuth } from "@/lib/auth/session";
 import { updateProfileSchema } from "@/lib/validations/user";
 import {
   successResponse,
@@ -17,16 +17,14 @@ export async function GET(request: NextRequest) {
     const user = await requireAuth();
 
     // Fetch fresh user data from database
-    const currentUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
+    const currentUser = await userRepository.findById(user.id);
 
     if (!currentUser) {
       return errorResponse("User not found", 404);
     }
 
     return successResponse({
-      user: toSessionUser(currentUser),
+      user: currentUser,
     });
   } catch (error) {
     return handleApiError(error);
@@ -47,10 +45,7 @@ export async function PATCH(request: NextRequest) {
 
     // Check if username is being changed and if it's taken
     if (validatedData.username) {
-      const existingUsername = await prisma.user.findUnique({
-        where: { username: validatedData.username },
-      });
-
+      const existingUsername = await userRepository.findByUsername(validatedData.username);
       if (existingUsername && existingUsername.id !== user.id) {
         return errorResponse("Username already taken", 409);
       }
@@ -58,24 +53,18 @@ export async function PATCH(request: NextRequest) {
 
     // Check if email is being changed and if it's taken
     if (validatedData.email) {
-      const existingEmail = await prisma.user.findUnique({
-        where: { email: validatedData.email },
-      });
-
+      const existingEmail = await userRepository.findByEmail(validatedData.email);
       if (existingEmail && existingEmail.id !== user.id) {
         return errorResponse("Email already registered", 409);
       }
     }
 
     // Update user profile
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: validatedData,
-    });
+    const updatedUser = await userRepository.updateUser(user.id, validatedData);
 
     return successResponse({
       message: "Profile updated successfully",
-      user: toSessionUser(updatedUser),
+      user: updatedUser,
     });
   } catch (error) {
     return handleApiError(error);

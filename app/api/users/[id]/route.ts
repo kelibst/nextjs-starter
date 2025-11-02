@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { Role } from "@prisma/client";
-import prisma from "@/lib/db/prisma";
-import { requireRole, toSessionUser } from "@/lib/auth/session";
+import { userRepository } from "@/lib/repositories";
+import { requireRole } from "@/lib/auth/session";
 import { adminUpdateUserSchema } from "@/lib/validations/user";
 import {
   successResponse,
@@ -24,16 +24,14 @@ export async function GET(
 
     const { id } = await params;
 
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
+    const user = await userRepository.findById(id);
 
     if (!user) {
       return notFoundResponse("User not found");
     }
 
     return successResponse({
-      user: toSessionUser(user),
+      user,
     });
   } catch (error) {
     return handleApiError(error);
@@ -61,9 +59,7 @@ export async function PATCH(
     const validatedData = adminUpdateUserSchema.parse(body);
 
     // Get target user
-    const targetUser = await prisma.user.findUnique({
-      where: { id },
-    });
+    const targetUser = await userRepository.findById(id);
 
     if (!targetUser) {
       return notFoundResponse("User not found");
@@ -83,35 +79,26 @@ export async function PATCH(
 
     // Check if username is being changed and if it's taken
     if (validatedData.username && validatedData.username !== targetUser.username) {
-      const existingUsername = await prisma.user.findUnique({
-        where: { username: validatedData.username },
-      });
-
-      if (existingUsername) {
+      const usernameExists = await userRepository.usernameExists(validatedData.username);
+      if (usernameExists) {
         return forbiddenResponse("Username already taken");
       }
     }
 
     // Check if email is being changed and if it's taken
     if (validatedData.email && validatedData.email !== targetUser.email) {
-      const existingEmail = await prisma.user.findUnique({
-        where: { email: validatedData.email },
-      });
-
-      if (existingEmail) {
+      const emailExists = await userRepository.emailExists(validatedData.email);
+      if (emailExists) {
         return forbiddenResponse("Email already registered");
       }
     }
 
     // Update user
-    const updatedUser = await prisma.user.update({
-      where: { id },
-      data: validatedData,
-    });
+    const updatedUser = await userRepository.updateUser(id, validatedData);
 
     return successResponse({
       message: "User updated successfully",
-      user: toSessionUser(updatedUser),
+      user: updatedUser,
     });
   } catch (error) {
     return handleApiError(error);
@@ -138,18 +125,14 @@ export async function DELETE(
     }
 
     // Check if user exists
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
+    const user = await userRepository.findById(id);
 
     if (!user) {
       return notFoundResponse("User not found");
     }
 
     // Delete user (refresh tokens will be cascade deleted)
-    await prisma.user.delete({
-      where: { id },
-    });
+    await userRepository.deleteUser(id);
 
     return successResponse({
       message: "User deleted successfully",

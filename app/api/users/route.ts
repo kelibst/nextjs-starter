@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import { Role } from "@prisma/client";
-import prisma from "@/lib/db/prisma";
-import { requireRole, toSessionUser } from "@/lib/auth/session";
+import { Role, Prisma } from "@prisma/client";
+import { userRepository } from "@/lib/repositories";
+import { requireRole } from "@/lib/auth/session";
 import {
   successResponse,
   handleApiError,
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {};
+    const where: Prisma.UserWhereInput = {};
 
     if (search) {
       where.OR = [
@@ -42,21 +42,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total count
-    const total = await prisma.user.count({ where });
+    const total = await userRepository.countUsers(where);
 
-    // Get users
-    const users = await prisma.user.findMany({
+    // Get users (automatically excludes passwords)
+    const users = await userRepository.getAllUsers({
       where,
       skip,
       take: limit,
       orderBy: { createdAt: "desc" },
     });
 
-    // Remove passwords from response
-    const sanitizedUsers = users.map(toSessionUser);
-
     return successResponse({
-      users: sanitizedUsers,
+      users,
       pagination: {
         page,
         limit,

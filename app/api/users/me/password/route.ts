@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import prisma from "@/lib/db/prisma";
+import { userRepository, refreshTokenRepository } from "@/lib/repositories";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { requireAuth } from "@/lib/auth/session";
 import { changePasswordSchema } from "@/lib/validations/auth";
@@ -22,9 +22,7 @@ export async function PATCH(request: NextRequest) {
     const validatedData = changePasswordSchema.parse(body);
 
     // Get current user with password
-    const currentUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
+    const currentUser = await userRepository.findByIdWithPassword(user.id);
 
     if (!currentUser) {
       return errorResponse("User not found", 404);
@@ -44,15 +42,13 @@ export async function PATCH(request: NextRequest) {
     const hashedNewPassword = await hashPassword(validatedData.newPassword);
 
     // Update password in database
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        password: hashedNewPassword,
-      },
+    await userRepository.updateUser(user.id, {
+      password: hashedNewPassword,
     });
 
-    // TODO: Optionally invalidate all refresh tokens to force re-login on all devices
-    // await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+    // Optionally invalidate all refresh tokens to force re-login on all devices
+    // Uncomment to enable this security feature:
+    // await refreshTokenRepository.deleteByUserId(user.id);
 
     return successResponse({
       message: "Password changed successfully",

@@ -40,6 +40,60 @@ Follow this order when implementing features:
 5. Add tests
 6. Update ACTIVITIES.md
 
+### 4. **Repository Pattern - Database Access**
+⚠️ **CRITICAL SECURITY REQUIREMENT:** Never use Prisma directly in API routes or components!
+
+**Why:**
+- Prevents accidental password exposure
+- Centralizes security policies
+- Enables audit logging
+- Makes testing easier
+- Provides single source of truth
+
+**Rules:**
+1. ✅ **DO:** Import from `@/lib/repositories`
+2. ❌ **DON'T:** Import from `@/lib/db/prisma` or `@prisma/client` in API routes
+3. ✅ **DO:** Use repository methods (automatically exclude passwords)
+4. ❌ **DON'T:** Write direct Prisma queries in routes
+
+**Available Repositories:**
+- `userRepository` - User operations (auto-excludes password)
+- `refreshTokenRepository` - Token management
+- `inviteRepository` - Invite operations
+
+**Example - CORRECT:**
+```typescript
+import { userRepository } from "@/lib/repositories";
+
+// Safe - password automatically excluded
+const user = await userRepository.findById(userId);
+
+// For authentication only - includes password
+const user = await userRepository.findByIdWithPassword(userId);
+```
+
+**Example - WRONG:**
+```typescript
+import prisma from "@/lib/db/prisma"; // ❌ DON'T DO THIS
+
+// Dangerous - password included!
+const user = await prisma.user.findUnique({ where: { id: userId } });
+```
+
+**Repository Features:**
+- Automatic password field exclusion on all User queries
+- Query logging in development (set `LOG_QUERIES=true`)
+- Consistent error handling
+- Type-safe operations
+- Transaction support
+
+**When to Create New Repositories:**
+- When adding new Prisma models
+- When complex queries need centralization
+- When field-level security is needed
+
+**Repository Location:** `lib/repositories/`
+
 ## 📚 Key Documentation Files
 
 Read these files to understand the project:
@@ -106,7 +160,8 @@ nextjs-starter/
 │   ├── auth/              # ✅ COMPLETE - Auth utilities
 │   ├── validations/       # ✅ COMPLETE - Zod schemas
 │   ├── api/               # ✅ COMPLETE - API helpers
-│   ├── db/                # ✅ COMPLETE - Prisma client
+│   ├── db/                # ✅ COMPLETE - Prisma client + middleware
+│   ├── repositories/      # ✅ COMPLETE - Data access layer (USE THIS!)
 │   └── hooks/             # React hooks
 ├── prisma/
 │   ├── schema.prisma      # ✅ COMPLETE - Database schema

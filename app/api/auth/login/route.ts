@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import prisma from "@/lib/db/prisma";
+import { userRepository } from "@/lib/repositories";
 import { verifyPassword } from "@/lib/auth/password";
-import { createSession, toSessionUser } from "@/lib/auth/session";
+import { createSession } from "@/lib/auth/session";
 import { loginSchema } from "@/lib/validations/auth";
 import {
   successResponse,
@@ -19,15 +19,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = loginSchema.parse(body);
 
-    // Find user by email or username
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: validatedData.emailOrUsername },
-          { username: validatedData.emailOrUsername },
-        ],
-      },
-    });
+    // Find user by email or username (WITH password for verification)
+    const user = await userRepository.findByEmailOrUsername(validatedData.emailOrUsername);
 
     // Check if user exists
     if (!user) {
@@ -47,10 +40,12 @@ export async function POST(request: NextRequest) {
     // Create session
     await createSession(user.id, user.role);
 
-    // Return user data (without password)
+    // Return user data (remove password)
+    const { password: _, ...safeUser } = user;
+
     return successResponse({
       message: "Login successful",
-      user: toSessionUser(user),
+      user: safeUser,
     });
   } catch (error) {
     return handleApiError(error);

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { User, Role } from "@prisma/client";
-import prisma from "@/lib/db/prisma";
+import { userRepository, refreshTokenRepository } from "@/lib/repositories";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -46,12 +46,10 @@ export async function createSession(userId: string, role: Role): Promise<void> {
   const refreshToken = await generateRefreshToken(payload);
 
   // Store refresh token in database
-  await prisma.refreshToken.create({
-    data: {
-      token: refreshToken,
-      userId,
-      expiresAt: getRefreshTokenExpiry(),
-    },
+  await refreshTokenRepository.createToken({
+    token: refreshToken,
+    userId,
+    expiresAt: getRefreshTokenExpiry(),
   });
 
   // Set cookies
@@ -80,9 +78,7 @@ export async function destroySession(): Promise<void> {
 
   // Delete refresh token from database
   if (refreshToken) {
-    await prisma.refreshToken.deleteMany({
-      where: { token: refreshToken },
-    });
+    await refreshTokenRepository.deleteByToken(refreshToken);
   }
 
   // Clear cookies
@@ -107,16 +103,15 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     // Verify and decode access token
     const payload = await verifyAccessToken(accessToken);
 
-    // Fetch user from database
-    const user = await prisma.user.findUnique({
-      where: { id: payload.userId },
-    });
+    // Fetch user from database (automatically excludes password)
+    const user = await userRepository.findById(payload.userId);
 
     if (!user) {
       return null;
     }
 
-    return toSessionUser(user);
+    // Already safe from repository
+    return user as SessionUser;
   } catch (error) {
     // Token is invalid or expired
     return null;
@@ -139,15 +134,12 @@ export async function refreshSession(): Promise<boolean> {
     }
 
     // Check if refresh token exists in database and is not expired
-    const storedToken = await prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
-      include: { user: true },
-    });
+    const storedToken = await refreshTokenRepository.findByTokenWithUser(refreshToken);
 
     if (!storedToken || storedToken.expiresAt < new Date()) {
       // Token doesn't exist or is expired
       if (storedToken) {
-        await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+        await refreshTokenRepository.deleteById(storedToken.id);
       }
       return false;
     }
@@ -163,17 +155,12 @@ export async function refreshSession(): Promise<boolean> {
     // Generate new refresh token (rotation)
     const newRefreshToken = await generateRefreshToken(payload);
 
-    // Delete old refresh token and create new one
-    await prisma.$transaction([
-      prisma.refreshToken.delete({ where: { id: storedToken.id } }),
-      prisma.refreshToken.create({
-        data: {
-          token: newRefreshToken,
-          userId: storedToken.userId,
-          expiresAt: getRefreshTokenExpiry(),
-        },
-      }),
-    ]);
+    // Rotate tokens atomically (delete old, create new)
+    await refreshTokenRepository.rotateToken(storedToken.id, {
+      token: newRefreshToken,
+      userId: storedToken.userId,
+      expiresAt: getRefreshTokenExpiry(),
+    });
 
     // Set new cookies
     cookieStore.set(COOKIE_NAMES.ACCESS_TOKEN, newAccessToken, {
