@@ -11,7 +11,9 @@
 export { userRepository } from "./user.repository";
 export { refreshTokenRepository } from "./refresh-token.repository";
 export { inviteRepository } from "./invite.repository";
+export { activityLogRepository } from "./activity-log.repository";
 
 export type { SafeUser } from "./user.repository";
 export type { RefreshTokenWithUser } from "./refresh-token.repository";
 export type { InviteWithCreator } from "./invite.repository";
+export type { ActivityLogWithUser } from "./activity-log.repository";
