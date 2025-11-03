@@ -34,9 +34,11 @@ export async function POST(request: NextRequest) {
         "Too many registration attempts. Please try again later.",
         429,
         {
-          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
-          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
-          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+            "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+            "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          },
         }
       );
     }
@@ -75,7 +77,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Update user with verification token
-    await userRepository.update(user.id, {
+    await userRepository.updateById(user.id, {
       emailVerified: false,
       verificationToken,
       verificationExpires,
@@ -114,9 +116,11 @@ export async function POST(request: NextRequest) {
       },
       201,
       {
-        "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
-        "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
-        "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+        headers: {
+          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+        },
       }
     );
   } catch (error) {

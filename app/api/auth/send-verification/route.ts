@@ -34,9 +34,11 @@ export async function POST(request: NextRequest) {
         "Too many requests. Please try again later.",
         429,
         {
-          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
-          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
-          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+            "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+            "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          },
         }
       );
     }
@@ -71,7 +73,7 @@ export async function POST(request: NextRequest) {
     const verificationExpires = getVerificationExpiry();
 
     // Update user with verification token
-    await userRepository.update(user.id, {
+    await userRepository.updateById(user.id, {
       verificationToken,
       verificationExpires,
     });
@@ -92,23 +94,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Log activity
-    await activityLogRepository.create({
+    await activityLogRepository.createLog({
       userId: user.id,
       action: "SEND_VERIFICATION_EMAIL",
       resource: "auth",
       details: { email },
       ipAddress: identifier,
-      userAgent: request.headers.get("user-agent"),
+      userAgent: request.headers.get("user-agent") || undefined,
     });
 
     return successResponse(
       {
         message: "Verification email sent successfully",
       },
+      200,
       {
-        "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
-        "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
-        "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+        headers: {
+          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+        },
       }
     );
   } catch (error) {

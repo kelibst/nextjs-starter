@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify email and clear token
-    await userRepository.update(user.id, {
+    await userRepository.updateById(user.id, {
       emailVerified: true,
       verificationToken: null,
       verificationExpires: null,
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       resource: "auth",
       details: { email: user.email },
       ipAddress: identifier,
-      userAgent: request.headers.get("user-agent"),
+      userAgent: request.headers.get("user-agent") || undefined,
     });
 
     return successResponse({

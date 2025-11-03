@@ -30,9 +30,11 @@ export async function POST(request: NextRequest) {
         "Too many login attempts. Please try again in 15 minutes.",
         429,
         {
-          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
-          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
-          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+            "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+            "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          },
         }
       );
     }
@@ -89,9 +91,11 @@ export async function POST(request: NextRequest) {
         },
         200,
         {
-          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
-          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
-          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+            "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+            "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          },
         }
       );
     }
@@ -112,9 +116,11 @@ export async function POST(request: NextRequest) {
       },
       200,
       {
-        "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
-        "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
-        "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+        headers: {
+          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+        },
       }
     );
   } catch (error) {

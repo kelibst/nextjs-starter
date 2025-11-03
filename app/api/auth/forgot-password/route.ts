@@ -35,12 +35,9 @@ export async function POST(request: NextRequest) {
         429,
         {
           headers: {
-        {
-          headers: {
             "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
             "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
             "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
-          },
           },
         }
       );
@@ -73,7 +70,6 @@ export async function POST(request: NextRequest) {
             "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
             "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
           },
-          },
         }
       );
     }
@@ -83,7 +79,7 @@ export async function POST(request: NextRequest) {
     const passwordResetExpires = getPasswordResetExpiry();
 
     // Update user with reset token
-    await userRepository.update(user.id, {
+    await userRepository.updateById(user.id, {
       passwordResetToken,
       passwordResetExpires,
     });
@@ -123,7 +119,6 @@ export async function POST(request: NextRequest) {
           "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
           "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
           "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
-          },
         },
       }
     );

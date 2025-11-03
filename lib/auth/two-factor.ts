@@ -97,7 +97,10 @@ function generateBackupCode(): string {
   const randomBytes = crypto.getRandomValues(new Uint8Array(8));
 
   for (let i = 0; i < 8; i++) {
-    code += chars[randomBytes[i] % chars.length];
+    const byte = randomBytes[i];
+    if (byte !== undefined) {
+      code += chars[byte % chars.length];
+    }
   }
 
   // Format as XXXX-XXXX for readability
@@ -115,9 +118,12 @@ export async function verifyBackupCode(
   hashedCodes: string[]
 ): Promise<{ valid: boolean; index: number }> {
   for (let i = 0; i < hashedCodes.length; i++) {
-    const isValid = await verifyPassword(code, hashedCodes[i]);
-    if (isValid) {
-      return { valid: true, index: i };
+    const hashedCode = hashedCodes[i];
+    if (hashedCode) {
+      const isValid = await verifyPassword(code, hashedCode);
+      if (isValid) {
+        return { valid: true, index: i };
+      }
     }
   }
 

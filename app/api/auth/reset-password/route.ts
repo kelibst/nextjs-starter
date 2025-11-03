@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password);
 
     // Update password and clear reset token
-    await userRepository.update(user.id, {
+    await userRepository.updateById(user.id, {
       password: hashedPassword,
       passwordResetToken: null,
       passwordResetExpires: null,
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       resource: "auth",
       details: { email: user.email },
       ipAddress: identifier,
-      userAgent: request.headers.get("user-agent"),
+      userAgent: request.headers.get("user-agent") || undefined,
     });
 
     return successResponse({

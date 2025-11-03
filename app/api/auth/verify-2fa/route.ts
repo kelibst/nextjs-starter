@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create session
-    const sessionResponse = await createSession(user.id, user.role);
+    await createSession(user.id, user.role);
 
     // Log successful 2FA login
     await activityLogRepository.createLog({
@@ -98,21 +98,17 @@ export async function POST(request: NextRequest) {
       userAgent: request.headers.get("user-agent") || undefined,
     });
 
-    return successResponse(
-      {
-        message: "Login successful",
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          emailVerified: user.emailVerified,
-          twoFactorEnabled: user.twoFactorEnabled,
-        },
+    return successResponse({
+      message: "Login successful",
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        emailVerified: user.emailVerified,
+        twoFactorEnabled: user.twoFactorEnabled,
       },
-      200,
-      { headers: sessionResponse.headers }
-    );
+    });
   } catch (error) {
     return handleApiError(error);
   }

@@ -166,7 +166,7 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
       data: { ...data, password: data.password ? "[REDACTED]" : undefined },
     });
 
-    const user = await this.update<User>({
+    const user = await this.delegate.update({
       where: { id },
       data,
     });
@@ -290,11 +290,11 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
   /**
    * Update user (generic update method)
    */
-  async update(
+  async updateById(
     id: string,
     data: Partial<Prisma.UserUpdateInput>
   ): Promise<SafeUser> {
-    this.logQuery("update", {
+    this.logQuery("updateById", {
       id,
       data: { ...data, password: data.password ? "[REDACTED]" : undefined },
     });
@@ -315,7 +315,7 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
    */
   async getTwoFactorSecret(userId: string): Promise<string | null> {
     this.logQuery("getTwoFactorSecret", { userId });
-    const user = await this.findUnique({
+    const user = await this.delegate.findUnique({
       where: { id: userId },
       select: { twoFactorSecret: true },
     });
@@ -328,7 +328,7 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
    */
   async getBackupCodes(userId: string): Promise<string[]> {
     this.logQuery("getBackupCodes", { userId });
-    const user = await this.findUnique({
+    const user = await this.delegate.findUnique({
       where: { id: userId },
       select: { backupCodes: true },
     });
@@ -344,7 +344,7 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
     backupCodes: string[]
   ): Promise<SafeUser> {
     this.logQuery("enableTwoFactor", { userId, secret: "[REDACTED]" });
-    return this.update(userId, {
+    return this.updateById(userId, {
       twoFactorEnabled: true,
       twoFactorSecret: secret,
       backupCodes: backupCodes,
@@ -356,7 +356,7 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
    */
   async disableTwoFactor(userId: string): Promise<SafeUser> {
     this.logQuery("disableTwoFactor", { userId });
-    return this.update(userId, {
+    return this.updateById(userId, {
       twoFactorEnabled: false,
       twoFactorSecret: null,
       backupCodes: [],
@@ -370,7 +370,7 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
     this.logQuery("removeBackupCode", { userId, codeIndex });
     const codes = await this.getBackupCodes(userId);
     codes.splice(codeIndex, 1);
-    await this.update(userId, {
+    await this.updateById(userId, {
       backupCodes: codes,
     });
   }
