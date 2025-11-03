@@ -9,6 +9,8 @@ export default async function RegisterPage() {
       showPassword={settings.allowPasswordAuth}
       showGoogle={settings.allowGoogleOAuth}
       showGithub={settings.allowGithubOAuth}
+      requireUsername={settings.requireUsername}
+      requireEmail={settings.requireEmail}
     />
   );
 }

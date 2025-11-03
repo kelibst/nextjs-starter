@@ -18,12 +18,16 @@ interface RegisterFormProps {
   showPassword?: boolean;
   showGoogle?: boolean;
   showGithub?: boolean;
+  requireUsername?: boolean;
+  requireEmail?: boolean;
 }
 
 export function RegisterForm({
   showPassword = true,
   showGoogle = false,
   showGithub = false,
+  requireUsername = true,
+  requireEmail = true,
 }: RegisterFormProps) {
   const { register: registerUser } = useAuth();
   const [error, setError] = useState<string | null>(null);
@@ -81,33 +85,39 @@ export function RegisterForm({
           {/* Password Registration Form */}
           {showPassword && (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="johndoe"
-                  {...register("username")}
-                  disabled={isLoading}
-                />
-                {errors.username && (
-                  <p className="text-sm text-destructive">{errors.username.message}</p>
-                )}
-              </div>
+              {/* Username field - only show if required */}
+              {requireUsername && (
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="johndoe"
+                    {...register("username")}
+                    disabled={isLoading}
+                  />
+                  {errors.username && (
+                    <p className="text-sm text-destructive">{errors.username.message}</p>
+                  )}
+                </div>
+              )}
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="john@example.com"
-                  {...register("email")}
-                  disabled={isLoading}
-                />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
-                )}
-              </div>
+              {/* Email field - only show if required */}
+              {requireEmail && (
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    {...register("email")}
+                    disabled={isLoading}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email.message}</p>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
