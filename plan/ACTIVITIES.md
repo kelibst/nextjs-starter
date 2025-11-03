@@ -4,6 +4,11 @@ This file tracks major features and changes implemented in the Next.js Authentic
 
 ## 2025-11-03
 
+### ✅ Fixed Settings Validation Schema Bug
+**Description:** Fixed critical bug where OAuth and registration settings were reverting to defaults on page reload.
+**Technical Notes:**
+- Updated updateSettingsSchema in app/api/admin/settings/route.ts to include all 8 AuthSettings fields (was missing 5 OAuth fields); settings now persist correctly across page reloads
+
 ### ✅ OAuth Authentication (Google & GitHub) - COMPLETE 🚀
 **Description:** Implemented complete OAuth 2.0 authentication with Google and GitHub using Arctic library, with admin-configurable toggles and auto-account linking.
 **Technical Notes:**
