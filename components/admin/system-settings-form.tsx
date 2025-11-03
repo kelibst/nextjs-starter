@@ -16,6 +16,16 @@ import { Loader2 } from "lucide-react";
 // ============================================================================
 
 const settingsFormSchema = z.object({
+  // Authentication methods
+  allowPasswordAuth: z.boolean(),
+  allowGoogleOAuth: z.boolean(),
+  allowGithubOAuth: z.boolean(),
+
+  // Registration requirements
+  requireUsername: z.boolean(),
+  requireEmail: z.boolean(),
+
+  // Security options
   emailVerificationRequired: z.boolean(),
   twoFactorRequired: z.boolean(),
   allowSelfRegistration: z.boolean(),
@@ -77,65 +87,187 @@ export function SystemSettingsForm({ initialSettings }: SystemSettingsFormProps)
             Configure how users authenticate and register on your platform
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Email Verification */}
-          <div className="flex items-center justify-between space-x-4">
-            <div className="flex-1 space-y-1">
-              <Label htmlFor="emailVerificationRequired">
-                Email Verification Required
-              </Label>
+        <CardContent className="space-y-8">
+          {/* Authentication Methods Section */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium">Authentication Methods</h3>
               <p className="text-sm text-muted-foreground">
-                Require users to verify their email address before they can use the
-                platform. Note: Requires RESEND_API_KEY to be configured.
+                Choose which authentication methods users can use to sign in
               </p>
             </div>
-            <Switch
-              id="emailVerificationRequired"
-              checked={watchedSettings.emailVerificationRequired}
-              onCheckedChange={(checked: boolean) =>
-                setValue("emailVerificationRequired", checked)
-              }
-            />
+
+            {/* Password Authentication */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="allowPasswordAuth">
+                  Password Authentication
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Allow users to register and sign in with username/email and password
+                </p>
+              </div>
+              <Switch
+                id="allowPasswordAuth"
+                checked={watchedSettings.allowPasswordAuth}
+                onCheckedChange={(checked: boolean) =>
+                  setValue("allowPasswordAuth", checked)
+                }
+              />
+            </div>
+
+            {/* Google OAuth */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="allowGoogleOAuth">
+                  Google OAuth
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Allow users to sign in with their Google account. Requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.
+                </p>
+              </div>
+              <Switch
+                id="allowGoogleOAuth"
+                checked={watchedSettings.allowGoogleOAuth}
+                onCheckedChange={(checked: boolean) =>
+                  setValue("allowGoogleOAuth", checked)
+                }
+              />
+            </div>
+
+            {/* GitHub OAuth */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="allowGithubOAuth">
+                  GitHub OAuth
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Allow users to sign in with their GitHub account. Requires GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET.
+                </p>
+              </div>
+              <Switch
+                id="allowGithubOAuth"
+                checked={watchedSettings.allowGithubOAuth}
+                onCheckedChange={(checked: boolean) =>
+                  setValue("allowGithubOAuth", checked)
+                }
+              />
+            </div>
           </div>
 
-          {/* Two-Factor Authentication */}
-          <div className="flex items-center justify-between space-x-4">
-            <div className="flex-1 space-y-1">
-              <Label htmlFor="twoFactorRequired">
-                Two-Factor Authentication Required
-              </Label>
+          {/* Registration Requirements Section */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium">Registration Requirements</h3>
               <p className="text-sm text-muted-foreground">
-                Require all users to enable two-factor authentication (2FA) for
-                enhanced security.
+                Configure what information is required during registration
               </p>
             </div>
-            <Switch
-              id="twoFactorRequired"
-              checked={watchedSettings.twoFactorRequired}
-              onCheckedChange={(checked: boolean) =>
-                setValue("twoFactorRequired", checked)
-              }
-            />
+
+            {/* Require Username */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="requireUsername">
+                  Require Username
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Require users to provide a username. OAuth users will have usernames auto-generated if disabled.
+                </p>
+              </div>
+              <Switch
+                id="requireUsername"
+                checked={watchedSettings.requireUsername}
+                onCheckedChange={(checked: boolean) =>
+                  setValue("requireUsername", checked)
+                }
+              />
+            </div>
+
+            {/* Require Email */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="requireEmail">
+                  Require Email
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Require users to provide an email address. Note: OAuth users always provide email.
+                </p>
+              </div>
+              <Switch
+                id="requireEmail"
+                checked={watchedSettings.requireEmail}
+                onCheckedChange={(checked: boolean) =>
+                  setValue("requireEmail", checked)
+                }
+              />
+            </div>
           </div>
 
-          {/* Self Registration */}
-          <div className="flex items-center justify-between space-x-4">
-            <div className="flex-1 space-y-1">
-              <Label htmlFor="allowSelfRegistration">
-                Allow Self-Registration
-              </Label>
+          {/* Security Options Section */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium">Security Options</h3>
               <p className="text-sm text-muted-foreground">
-                Allow users to create their own accounts. Disable to make
-                registration invite-only.
+                Additional security requirements for users
               </p>
             </div>
-            <Switch
-              id="allowSelfRegistration"
-              checked={watchedSettings.allowSelfRegistration}
-              onCheckedChange={(checked: boolean) =>
-                setValue("allowSelfRegistration", checked)
-              }
-            />
+
+            {/* Email Verification */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="emailVerificationRequired">
+                  Email Verification Required
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Require password users to verify their email. OAuth users are auto-verified. Requires RESEND_API_KEY.
+                </p>
+              </div>
+              <Switch
+                id="emailVerificationRequired"
+                checked={watchedSettings.emailVerificationRequired}
+                onCheckedChange={(checked: boolean) =>
+                  setValue("emailVerificationRequired", checked)
+                }
+              />
+            </div>
+
+            {/* Two-Factor Authentication */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="twoFactorRequired">
+                  Two-Factor Authentication Required
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Require all users to enable two-factor authentication (2FA) for enhanced security.
+                </p>
+              </div>
+              <Switch
+                id="twoFactorRequired"
+                checked={watchedSettings.twoFactorRequired}
+                onCheckedChange={(checked: boolean) =>
+                  setValue("twoFactorRequired", checked)
+                }
+              />
+            </div>
+
+            {/* Self Registration */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="allowSelfRegistration">
+                  Allow Self-Registration
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Allow users to create their own accounts. Disable to make registration invite-only.
+                </p>
+              </div>
+              <Switch
+                id="allowSelfRegistration"
+                checked={watchedSettings.allowSelfRegistration}
+                onCheckedChange={(checked: boolean) =>
+                  setValue("allowSelfRegistration", checked)
+                }
+              />
+            </div>
           </div>
 
           {/* Submit Button */}

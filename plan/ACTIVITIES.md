@@ -4,6 +4,19 @@ This file tracks major features and changes implemented in the Next.js Authentic
 
 ## 2025-11-03
 
+### ✅ OAuth Authentication (Google & GitHub) - COMPLETE 🚀
+**Description:** Implemented complete OAuth 2.0 authentication with Google and GitHub using Arctic library, with admin-configurable toggles and auto-account linking.
+**Technical Notes:**
+- **Database**: Added OAuth fields to User (googleId, githubId, avatarUrl, registrationMethod); made username/password optional; ran migration add_oauth_fields
+- **Settings**: Extended AuthSettings with 5 new toggles (allowPasswordAuth, allowGoogleOAuth, allowGithubOAuth, requireUsername, requireEmail); defaults: password=ON, OAuth=OFF
+- **Arctic Integration**: Installed arctic@3.7.0; created lib/auth/oauth.ts with Google/GitHub providers; PKCE support for Google; state validation for CSRF protection
+- **API Routes**: Built 4 OAuth routes (Google/GitHub initiate + callbacks); auto-linking by email; username auto-generation; OAuth users emailVerified=true
+- **Repository**: Updated userRepository with 6 OAuth methods (findByGoogleId, findByGithubId, linkGoogleAccount, linkGithubAccount, unlinkGoogleAccount, unlinkGithubAccount)
+- **Admin UI**: Completely redesigned SystemSettingsForm with 3 sections (Auth Methods, Registration Requirements, Security Options); 8 total toggles
+- **User UI**: Updated LoginForm and RegisterForm with OAuth buttons; dynamic rendering based on admin settings; "no auth methods" fallback; OAuthButtons component with Google/GitHub branding
+- **Environment**: Added GOOGLE_CLIENT_ID/SECRET and GITHUB_CLIENT_ID/SECRET to .env.example with setup URLs
+- **Documentation**: Created plan/FEATURES.md comprehensive feature catalog; updated .env.example with OAuth credentials
+
 ### ✅ Admin-Configurable Auth Settings (2FA & Email Verification Toggle)
 **Description:** Made email verification and 2FA opt-in via admin settings panel, allowing registration without RESEND_API_KEY.
 **Technical Notes:**
