@@ -2,6 +2,20 @@
 
 This file tracks major features and changes implemented in the Next.js Authentication Starter Kit.
 
+## 2025-11-03
+
+### ✅ Updated README.md with Email Features
+**Description:** Updated README.md to reflect newly implemented email verification, password reset, and rate limiting features.
+**Technical Notes:**
+- Updated features section with email verification, password reset, rate limiting, and password visibility toggle
+- Added EMAIL_SETUP_GUIDE.md to documentation table with prominent placement
+- Added step 6 in Quick Start for optional email features setup
+- Updated API endpoints section with 4 new email-related routes
+- Updated security features section with implemented email/rate limiting features
+- Updated current status to reflect 98% completion
+- Updated branch strategy to show email features in main branch
+- Updated "What's Next?" section with email testing steps
+
 ## 2025-11-01
 
 ### ✅ Phase 1: Foundation & Infrastructure Setup

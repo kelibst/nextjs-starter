@@ -25,6 +25,10 @@
 - ✅ **Role-Based Access Control** - 3-tier system (USER, ADMIN, SUPER_ADMIN)
 - ✅ **Protected Routes** - Next.js Edge middleware for route protection
 - ✅ **Security Headers** - HSTS, CSP, X-Frame-Options, XSS protection
+- ✅ **Email Verification** - Secure token-based email verification with 24h expiry
+- ✅ **Password Reset** - One-time use reset tokens with 1h expiry
+- ✅ **Rate Limiting** - Configurable rate limits with Upstash Redis (optional)
+- ✅ **Password Visibility Toggle** - Eye icon on all password fields for better UX
 
 ### 👥 User Management
 - ✅ **Complete REST API** - 15 endpoints for auth & user operations
@@ -66,14 +70,12 @@
 - ✅ **Health Check** - `/api/health` endpoint for monitoring
 - ✅ **CI/CD Ready** - GitHub Actions workflows included
 
-### 📦 Optional Features (Feature Branches - Coming Soon)
-- ⏳ Email verification
-- ⏳ Password reset flow
+### 📦 Optional Features (Feature Branches)
 - ⏳ Two-factor authentication (2FA/TOTP)
 - ⏳ OAuth (Google, GitHub)
 - ⏳ Magic link login
 - ⏳ API key authentication
-- ⏳ Rate limiting with Upstash
+- ⏳ Enhanced audit logging with Pino
 
 ---
 
@@ -137,7 +139,25 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) 🎉
 
-### 6. Login & Explore
+### 6. (Optional) Setup Email Features
+
+To enable **email verification** and **password reset**:
+
+```bash
+# Get free Resend API key from https://resend.com
+# Add to .env:
+RESEND_API_KEY=re_xxx
+FROM_EMAIL=onboarding@resend.dev  # Use this for testing
+```
+
+See [EMAIL_SETUP_GUIDE.md](EMAIL_SETUP_GUIDE.md) for complete setup instructions, including:
+- Resend account setup (free tier: 3,000 emails/month)
+- Email template customization
+- Production domain configuration
+- Rate limiting setup with Upstash Redis
+- Testing & troubleshooting
+
+### 7. Login & Explore
 
 1. **Landing Page:** [http://localhost:3000](http://localhost:3000)
 2. **Login:** [http://localhost:3000/login](http://localhost:3000/login)
@@ -145,6 +165,8 @@ Open [http://localhost:3000](http://localhost:3000) 🎉
 4. **Admin Panel:** [http://localhost:3000/admin](http://localhost:3000/admin)
 5. **Profile:** [http://localhost:3000/dashboard/profile](http://localhost:3000/dashboard/profile)
 6. **Settings:** [http://localhost:3000/dashboard/settings](http://localhost:3000/dashboard/settings)
+7. **Password Reset:** Click "Forgot password?" on login page
+8. **Email Verification:** Yellow banner on dashboard for unverified users
 
 ---
 
@@ -195,6 +217,7 @@ curl -X GET http://localhost:3000/api/auth/me -b cookies.txt
 
 | Document | Description |
 |----------|-------------|
+| [EMAIL_SETUP_GUIDE.md](EMAIL_SETUP_GUIDE.md) | **Email verification & password reset setup guide** |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Complete deployment guide (Vercel, Railway, Docker, VPS) |
 | [API_TESTING.md](API_TESTING.md) | API endpoint documentation & testing |
 | [E2E_TESTING.md](E2E_TESTING.md) | Playwright testing guide |
@@ -339,11 +362,15 @@ nextjs-starter/
 ## 🎯 API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Create new account
+- `POST /api/auth/register` - Create new account (auto-sends verification email)
 - `POST /api/auth/login` - Authenticate user
 - `POST /api/auth/logout` - End session
 - `POST /api/auth/refresh` - Refresh access token
 - `GET /api/auth/me` - Get current user
+- `POST /api/auth/send-verification` - Send/resend email verification
+- `GET /api/auth/verify-email?token=xxx` - Verify email with token
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password` - Reset password with token
 
 ### User Management
 - `GET /api/users` - List all users (admin only)
@@ -383,19 +410,21 @@ See [API_TESTING.md](API_TESTING.md) for detailed documentation.
 - ✅ **Activity Logging** - Audit trail for compliance
 - ✅ **Failed Login Tracking** - Detect brute force attempts
 - ✅ **Query Logging** - Performance monitoring & security auditing
+- ✅ **Email Verification** - Cryptographically secure tokens with 24h expiry
+- ✅ **Password Reset** - One-time use tokens with 1h expiry
+- ✅ **Rate Limiting** - Configurable limits with Upstash Redis (optional)
 
 ### Coming Soon (Feature Branches)
-- ⏳ **Email Verification** - Verify email on signup
-- ⏳ **Password Reset** - Forgot password flow with email
 - ⏳ **2FA/TOTP** - Two-factor authentication
-- ⏳ **Rate Limiting** - Prevent abuse with Upstash Redis
+- ⏳ **OAuth** - Social login (Google, GitHub)
+- ⏳ **Magic Link** - Passwordless authentication
 - ⏳ **CSRF Protection** - Cross-site request forgery prevention
 
 ---
 
 ## 📊 Current Status
 
-**Overall Progress:** ~85% Complete
+**Overall Progress:** ~98% Complete ⭐
 
 **✅ Completed:**
 - Phase 1: Foundation & Infrastructure (100%)
@@ -405,14 +434,22 @@ See [API_TESTING.md](API_TESTING.md) for detailed documentation.
 - Phase 5: UI Components (100%)
 - Phase 6: Pages & Layouts (100%)
 - Phase 7: E2E Testing (100%)
+- Phase 8: Documentation (100%)
+- Phase 9: Polish & Deployment (95%)
+- **NEW:** Email Verification System (100%)
+- **NEW:** Password Reset System (100%)
+- **NEW:** Rate Limiting System (100%)
+- **NEW:** Password Visibility Toggle (100%)
 - Admin Panel: Complete (100%)
 - Theme System: Complete (100%)
 - Activity Logging: Complete (100%)
 - Repository Pattern: Complete (100%)
 
-**⏳ In Progress:**
-- Phase 8: Documentation (50%)
-- Phase 9: Polish & Deployment (90%)
+**⏳ Optional (Feature Branches):**
+- Two-Factor Authentication (2FA)
+- OAuth (Google, GitHub)
+- Magic Link Authentication
+- API Key System
 
 **🎉 Production Ready!**
 
@@ -426,26 +463,27 @@ See [plan/ACTIVITIES.md](plan/ACTIVITIES.md) for detailed progress.
 Contains complete, production-ready authentication:
 - JWT authentication with refresh tokens
 - Role-based access control (3 roles)
+- Email verification system
+- Password reset flow
+- Rate limiting (optional with Upstash)
 - Complete admin panel
 - Activity logging & compliance
 - Dark mode theme system
 - E2E test suite
+- Password visibility toggle
 
 ### Feature Branches (Coming Soon)
 Independent opt-in features:
-1. `feature/email-verification` - Email verification on signup
-2. `feature/password-reset` - Forgot password flow
-3. `feature/2fa` - Two-factor authentication
-4. `feature/oauth` - Google & GitHub OAuth
-5. `feature/magic-link` - Passwordless email login
-6. `feature/api-keys` - API key authentication
-7. `feature/rate-limiting` - Rate limiting with Upstash
-8. `feature/all` - All features combined
+1. `feature/2fa` - Two-factor authentication (TOTP)
+2. `feature/oauth` - Google & GitHub OAuth
+3. `feature/magic-link` - Passwordless email login
+4. `feature/api-keys` - API key authentication
+5. `feature/all` - All optional features combined
 
 **Usage:** Merge only the features you need:
 ```bash
-git merge feature/email-verification
 git merge feature/2fa
+git merge feature/oauth
 ```
 
 ---
@@ -552,13 +590,16 @@ npm install
 After you've explored the starter kit:
 
 1. **Change default admin password** at `/dashboard/profile`
-2. **Customize theme** at `/dashboard/settings`
-3. **Create test users** at `/register`
-4. **Explore admin panel** at `/admin`
-5. **Test API endpoints** with cURL or Postman
-6. **Run E2E tests** to verify everything works
-7. **Deploy to production** using [DEPLOYMENT.md](DEPLOYMENT.md)
-8. **Add feature branches** as needed (email verification, 2FA, etc.)
+2. **Setup email features** using [EMAIL_SETUP_GUIDE.md](EMAIL_SETUP_GUIDE.md)
+3. **Customize theme** at `/dashboard/settings`
+4. **Create test users** at `/register`
+5. **Test email verification** - register and check inbox
+6. **Test password reset** - click "Forgot password?" on login
+7. **Explore admin panel** at `/admin`
+8. **Test API endpoints** with cURL or Postman
+9. **Run E2E tests** to verify everything works
+10. **Deploy to production** using [DEPLOYMENT.md](DEPLOYMENT.md)
+11. **Add optional features** as needed (2FA, OAuth, etc.)
 
 ---
 
