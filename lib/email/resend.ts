@@ -11,4 +11,4 @@ export const FROM_EMAIL =
   process.env.FROM_EMAIL || "onboarding@resend.dev";
 
 // App URL for email links
-export const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";

@@ -162,7 +162,7 @@ Copy `.env.example` to `.env` and configure:
 # Required for email functionality
 RESEND_API_KEY=re_xxx  # Get from https://resend.com
 FROM_EMAIL=noreply@yourdomain.com  # Verified sender domain
-NEXTAUTH_URL=http://localhost:3000  # Your app URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000  # Your app URL (already defined in .env.example)
 
 # Optional but recommended for rate limiting
 UPSTASH_REDIS_REST_URL=https://xxx.upstash.io  # Get from https://upstash.com

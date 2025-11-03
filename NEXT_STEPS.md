@@ -64,7 +64,7 @@
 - ✅ Updated [.env.example](.env.example) with new variables:
   - `RESEND_API_KEY` - Resend email service
   - `FROM_EMAIL` - Verified sender email
-  - `NEXTAUTH_URL` - App URL for email links
+  - `NEXT_PUBLIC_APP_URL` - App URL for email links
   - `REQUIRE_EMAIL_VERIFICATION` - Optional enforcement flag
   - `UPSTASH_REDIS_REST_URL` - Rate limiting (optional)
   - `UPSTASH_REDIS_REST_TOKEN` - Rate limiting (optional)

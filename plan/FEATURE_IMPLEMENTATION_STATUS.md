@@ -144,7 +144,7 @@ RESEND_API_KEY=re_123456789 # Get from resend.com
 FROM_EMAIL=noreply@yourdomain.com # Verified sender email
 
 # App URL (for email links)
-NEXTAUTH_URL=http://localhost:3000 # Change in production
+NEXT_PUBLIC_APP_URL=http://localhost:3000 # Change in production
 
 # Rate Limiting (Optional - Upstash Redis)
 UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
