@@ -25,6 +25,16 @@ import { logActivity } from "@/lib/utils/activity-logger";
 // ============================================================================
 
 const updateSettingsSchema = z.object({
+  // Authentication methods
+  allowPasswordAuth: z.boolean().optional(),
+  allowGoogleOAuth: z.boolean().optional(),
+  allowGithubOAuth: z.boolean().optional(),
+
+  // Registration requirements
+  requireUsername: z.boolean().optional(),
+  requireEmail: z.boolean().optional(),
+
+  // Security options
   emailVerificationRequired: z.boolean().optional(),
   twoFactorRequired: z.boolean().optional(),
   allowSelfRegistration: z.boolean().optional(),
