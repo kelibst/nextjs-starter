@@ -112,6 +112,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw new Error(data.error || "Login failed");
     }
 
+    // Check if 2FA is required
+    if (data.data.requiresTwoFactor) {
+      // Redirect to 2FA verification page with userId
+      router.push(`/verify-2fa?userId=${data.data.userId}`);
+      return;
+    }
+
     setUser(data.data.user);
 
     // Smart redirect based on user role and intended destination

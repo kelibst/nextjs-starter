@@ -70,7 +70,33 @@ export async function POST(request: NextRequest) {
       return errorResponse("Invalid email/username or password", 401);
     }
 
-    // Create session
+    // Check if 2FA is enabled
+    if (user.twoFactorEnabled) {
+      // Don't create session yet - require 2FA verification first
+      // Return special response indicating 2FA is required
+      const { password: _, twoFactorSecret: __, backupCodes: ___, ...safeUser } = user;
+
+      return successResponse(
+        {
+          requiresTwoFactor: true,
+          userId: user.id,
+          message: "Please enter your two-factor authentication code",
+          user: {
+            id: safeUser.id,
+            username: safeUser.username,
+            email: safeUser.email,
+          },
+        },
+        200,
+        {
+          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+        }
+      );
+    }
+
+    // Create session (no 2FA required)
     await createSession(user.id, user.role);
 
     // Log successful login

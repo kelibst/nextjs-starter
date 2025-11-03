@@ -30,6 +30,11 @@ model User {
   passwordResetToken   String?   @unique
   passwordResetExpires DateTime?
 
+  // Two-Factor Authentication (2FA)
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String?  // TOTP secret (encrypted)
+  backupCodes      String[] // Array of hashed backup codes
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

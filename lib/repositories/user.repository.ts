@@ -25,6 +25,7 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
     email: true,
     role: true,
     emailVerified: true,
+    twoFactorEnabled: true,
     createdAt: true,
     updatedAt: true,
   } as const;
@@ -306,6 +307,72 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
     // Remove password before returning
     const { password: _, ...safeUser } = user;
     return safeUser as SafeUser;
+  }
+
+  /**
+   * Get user's 2FA secret (with twoFactorSecret field)
+   * Use only for 2FA verification
+   */
+  async getTwoFactorSecret(userId: string): Promise<string | null> {
+    this.logQuery("getTwoFactorSecret", { userId });
+    const user = await this.findUnique({
+      where: { id: userId },
+      select: { twoFactorSecret: true },
+    });
+    return user?.twoFactorSecret || null;
+  }
+
+  /**
+   * Get user's backup codes (with backupCodes field)
+   * Use only for backup code verification
+   */
+  async getBackupCodes(userId: string): Promise<string[]> {
+    this.logQuery("getBackupCodes", { userId });
+    const user = await this.findUnique({
+      where: { id: userId },
+      select: { backupCodes: true },
+    });
+    return user?.backupCodes || [];
+  }
+
+  /**
+   * Enable 2FA for user
+   */
+  async enableTwoFactor(
+    userId: string,
+    secret: string,
+    backupCodes: string[]
+  ): Promise<SafeUser> {
+    this.logQuery("enableTwoFactor", { userId, secret: "[REDACTED]" });
+    return this.update(userId, {
+      twoFactorEnabled: true,
+      twoFactorSecret: secret,
+      backupCodes: backupCodes,
+    });
+  }
+
+  /**
+   * Disable 2FA for user
+   */
+  async disableTwoFactor(userId: string): Promise<SafeUser> {
+    this.logQuery("disableTwoFactor", { userId });
+    return this.update(userId, {
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      backupCodes: [],
+    });
+  }
+
+  /**
+   * Remove a used backup code
+   */
+  async removeBackupCode(userId: string, codeIndex: number): Promise<void> {
+    this.logQuery("removeBackupCode", { userId, codeIndex });
+    const codes = await this.getBackupCodes(userId);
+    codes.splice(codeIndex, 1);
+    await this.update(userId, {
+      backupCodes: codes,
+    });
   }
 }
 

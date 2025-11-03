@@ -1,5 +1,6 @@
 import { AppearanceSettings } from "@/components/dashboard/settings/appearance-settings";
 import { AccountSettings } from "@/components/dashboard/settings/account-settings";
+import { SecuritySettings } from "@/components/dashboard/settings/security-settings";
 
 export default function SettingsPage() {
   return (
@@ -13,6 +14,7 @@ export default function SettingsPage() {
 
       <div className="space-y-6">
         <AppearanceSettings />
+        <SecuritySettings />
         <AccountSettings />
       </div>
     </div>
