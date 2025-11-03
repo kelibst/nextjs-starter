@@ -10,6 +10,16 @@ import prisma from "@/lib/db/prisma";
 // ============================================================================
 
 export interface AuthSettings {
+  // Authentication methods
+  allowPasswordAuth: boolean;
+  allowGoogleOAuth: boolean;
+  allowGithubOAuth: boolean;
+
+  // Registration requirements
+  requireUsername: boolean;
+  requireEmail: boolean;
+
+  // Security options
   emailVerificationRequired: boolean;
   twoFactorRequired: boolean;
   allowSelfRegistration: boolean;
@@ -22,9 +32,19 @@ export type SettingKey = "auth_settings";
 // ============================================================================
 
 const DEFAULT_AUTH_SETTINGS: AuthSettings = {
-  emailVerificationRequired: false, // Default to OFF (opt-in)
-  twoFactorRequired: false, // Default to OFF (opt-in)
-  allowSelfRegistration: true, // Allow public registration
+  // Authentication methods
+  allowPasswordAuth: true, // Password auth ON by default
+  allowGoogleOAuth: false, // OAuth OFF by default (requires setup)
+  allowGithubOAuth: false, // OAuth OFF by default (requires setup)
+
+  // Registration requirements
+  requireUsername: true, // Username required by default
+  requireEmail: true, // Email required by default
+
+  // Security options
+  emailVerificationRequired: false, // Email verification OFF (opt-in)
+  twoFactorRequired: false, // 2FA OFF (opt-in)
+  allowSelfRegistration: true, // Public registration allowed
 };
 
 // ============================================================================
@@ -109,4 +129,44 @@ export async function isTwoFactorRequired(): Promise<boolean> {
 export async function isSelfRegistrationAllowed(): Promise<boolean> {
   const settings = await getAuthSettings();
   return settings.allowSelfRegistration;
+}
+
+/**
+ * Check if password authentication is allowed
+ */
+export async function isPasswordAuthAllowed(): Promise<boolean> {
+  const settings = await getAuthSettings();
+  return settings.allowPasswordAuth;
+}
+
+/**
+ * Check if Google OAuth is allowed
+ */
+export async function isGoogleOAuthAllowed(): Promise<boolean> {
+  const settings = await getAuthSettings();
+  return settings.allowGoogleOAuth && !!process.env.GOOGLE_CLIENT_ID;
+}
+
+/**
+ * Check if GitHub OAuth is allowed
+ */
+export async function isGithubOAuthAllowed(): Promise<boolean> {
+  const settings = await getAuthSettings();
+  return settings.allowGithubOAuth && !!process.env.GITHUB_CLIENT_ID;
+}
+
+/**
+ * Check if username is required for registration
+ */
+export async function isUsernameRequired(): Promise<boolean> {
+  const settings = await getAuthSettings();
+  return settings.requireUsername;
+}
+
+/**
+ * Check if email is required for registration
+ */
+export async function isEmailRequired(): Promise<boolean> {
+  const settings = await getAuthSettings();
+  return settings.requireEmail;
 }

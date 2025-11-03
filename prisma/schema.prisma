@@ -16,9 +16,9 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  username  String   @unique
+  username  String?  @unique // Optional for OAuth users
   email     String   @unique
-  password  String   // bcrypt hashed
+  password  String?  // Optional for OAuth-only users
   role      Role     @default(USER)
 
   // Email Verification
@@ -35,6 +35,12 @@ model User {
   twoFactorSecret  String?  // TOTP secret (encrypted)
   backupCodes      String[] // Array of hashed backup codes
 
+  // OAuth Integration
+  googleId          String?  @unique
+  githubId          String?  @unique
+  avatarUrl         String?  // Profile picture from OAuth provider
+  registrationMethod String  @default("password") // "password" | "google" | "github"
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -47,6 +53,8 @@ model User {
   @@index([username])
   @@index([verificationToken])
   @@index([passwordResetToken])
+  @@index([googleId])
+  @@index([githubId])
   @@map("users")
 }
 

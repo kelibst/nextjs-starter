@@ -26,6 +26,10 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
     role: true,
     emailVerified: true,
     twoFactorEnabled: true,
+    googleId: true,
+    githubId: true,
+    avatarUrl: true,
+    registrationMethod: true,
     createdAt: true,
     updatedAt: true,
   } as const;
@@ -134,18 +138,28 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
    * Create a new user
    */
   async createUser(data: {
-    username: string;
+    username?: string | null;
     email: string;
-    password: string;
+    password?: string | null;
     role?: Role;
+    googleId?: string | null;
+    githubId?: string | null;
+    avatarUrl?: string | null;
+    emailVerified?: boolean;
+    registrationMethod?: string;
   }): Promise<SafeUser> {
-    this.logQuery("createUser", { ...data, password: "[REDACTED]" });
+    this.logQuery("createUser", { ...data, password: data.password ? "[REDACTED]" : null });
     const user = await this.create<User>({
       data: {
         username: data.username,
         email: data.email,
         password: data.password,
         role: data.role || Role.USER,
+        googleId: data.googleId,
+        githubId: data.githubId,
+        avatarUrl: data.avatarUrl,
+        emailVerified: data.emailVerified,
+        registrationMethod: data.registrationMethod,
       },
     });
 
@@ -372,6 +386,82 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
     codes.splice(codeIndex, 1);
     await this.updateById(userId, {
       backupCodes: codes,
+    });
+  }
+
+  // ============================================================================
+  // OAuth Methods
+  // ============================================================================
+
+  /**
+   * Find user by Google ID
+   */
+  async findByGoogleId(googleId: string): Promise<SafeUser | null> {
+    this.logQuery("findByGoogleId", { googleId });
+    return this.findUnique({
+      where: { googleId },
+      select: this.safeUserSelect,
+    });
+  }
+
+  /**
+   * Find user by GitHub ID
+   */
+  async findByGithubId(githubId: string): Promise<SafeUser | null> {
+    this.logQuery("findByGithubId", { githubId });
+    return this.findUnique({
+      where: { githubId },
+      select: this.safeUserSelect,
+    });
+  }
+
+  /**
+   * Link Google account to existing user
+   */
+  async linkGoogleAccount(
+    userId: string,
+    googleId: string,
+    avatarUrl?: string
+  ): Promise<SafeUser> {
+    this.logQuery("linkGoogleAccount", { userId, googleId });
+    return this.updateById(userId, {
+      googleId,
+      avatarUrl: avatarUrl || undefined,
+    });
+  }
+
+  /**
+   * Link GitHub account to existing user
+   */
+  async linkGithubAccount(
+    userId: string,
+    githubId: string,
+    avatarUrl?: string
+  ): Promise<SafeUser> {
+    this.logQuery("linkGithubAccount", { userId, githubId });
+    return this.updateById(userId, {
+      githubId,
+      avatarUrl: avatarUrl || undefined,
+    });
+  }
+
+  /**
+   * Unlink Google account from user
+   */
+  async unlinkGoogleAccount(userId: string): Promise<SafeUser> {
+    this.logQuery("unlinkGoogleAccount", { userId });
+    return this.updateById(userId, {
+      googleId: null,
+    });
+  }
+
+  /**
+   * Unlink GitHub account from user
+   */
+  async unlinkGithubAccount(userId: string): Promise<SafeUser> {
+    this.logQuery("unlinkGithubAccount", { userId });
+    return this.updateById(userId, {
+      githubId: null,
     });
   }
 }
