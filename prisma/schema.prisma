@@ -21,6 +21,15 @@ model User {
   password  String   // bcrypt hashed
   role      Role     @default(USER)
 
+  // Email Verification
+  emailVerified        Boolean   @default(false)
+  verificationToken    String?   @unique
+  verificationExpires  DateTime?
+
+  // Password Reset
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -31,6 +40,8 @@ model User {
 
   @@index([email])
   @@index([username])
+  @@index([verificationToken])
+  @@index([passwordResetToken])
   @@map("users")
 }
 

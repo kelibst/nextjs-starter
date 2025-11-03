@@ -9,6 +9,11 @@ import {
   handleApiError,
 } from "@/lib/api/response";
 import { logAuth, ActivityAction } from "@/lib/utils/activity-logger";
+import {
+  loginRateLimiter,
+  checkRateLimit,
+  getRateLimitIdentifier,
+} from "@/lib/rate-limit";
 
 /**
  * POST /api/auth/login
@@ -16,12 +21,30 @@ import { logAuth, ActivityAction } from "@/lib/utils/activity-logger";
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const identifier = getRateLimitIdentifier(request);
+    const rateLimit = await checkRateLimit(loginRateLimiter, identifier);
+
+    if (!rateLimit.success) {
+      return errorResponse(
+        "Too many login attempts. Please try again in 15 minutes.",
+        429,
+        {
+          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+        }
+      );
+    }
+
     // Parse and validate request body
     const body = await request.json();
     const validatedData = loginSchema.parse(body);
 
     // Find user by email or username (WITH password for verification)
-    const user = await userRepository.findByEmailOrUsername(validatedData.emailOrUsername);
+    const user = await userRepository.findByEmailOrUsername(
+      validatedData.emailOrUsername
+    );
 
     // Check if user exists
     if (!user) {
@@ -56,10 +79,18 @@ export async function POST(request: NextRequest) {
     // Return user data (remove password)
     const { password: _, ...safeUser } = user;
 
-    return successResponse({
-      message: "Login successful",
-      user: safeUser,
-    });
+    return successResponse(
+      {
+        message: "Login successful",
+        user: safeUser,
+      },
+      200,
+      {
+        "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+        "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+        "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+      }
+    );
   } catch (error) {
     return handleApiError(error);
   }

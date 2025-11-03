@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { User, Mail, Calendar, Shield } from "lucide-react";
+import { VerificationNotice } from "@/components/auth/verification-notice";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -27,6 +28,10 @@ export default function DashboardPage() {
           Here&apos;s what&apos;s happening with your account.
         </p>
       </div>
+
+      {user.emailVerified === false && (
+        <VerificationNotice email={user.email} />
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>

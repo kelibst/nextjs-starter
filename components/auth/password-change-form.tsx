@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema, type ChangePasswordInput } from "@/lib/validations/auth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -58,9 +58,8 @@ export function PasswordChangeForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="currentPassword">Current Password</Label>
-            <Input
+            <PasswordInput
               id="currentPassword"
-              type="password"
               placeholder="••••••••"
               {...register("currentPassword")}
               disabled={isLoading}
@@ -72,9 +71,8 @@ export function PasswordChangeForm() {
 
           <div className="space-y-2">
             <Label htmlFor="newPassword">New Password</Label>
-            <Input
+            <PasswordInput
               id="newPassword"
-              type="password"
               placeholder="••••••••"
               {...register("newPassword")}
               disabled={isLoading}
@@ -89,9 +87,8 @@ export function PasswordChangeForm() {
 
           <div className="space-y-2">
             <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
-            <Input
+            <PasswordInput
               id="confirmNewPassword"
-              type="password"
               placeholder="••••••••"
               {...register("confirmNewPassword")}
               disabled={isLoading}

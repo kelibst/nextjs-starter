@@ -17,13 +17,14 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
   protected modelName = "User";
 
   /**
-   * Safe user select (excludes password)
+   * Safe user select (excludes password and sensitive tokens)
    */
   private readonly safeUserSelect = {
     id: true,
     username: true,
     email: true,
     role: true,
+    emailVerified: true,
     createdAt: true,
     updatedAt: true,
   } as const;
@@ -263,6 +264,48 @@ class UserRepository extends BaseRepository<User, typeof prisma.user> {
         },
       },
     });
+  }
+
+  /**
+   * Find user by verification token (with all fields)
+   */
+  async findByVerificationToken(token: string): Promise<User | null> {
+    this.logQuery("findByVerificationToken", { token: "[REDACTED]" });
+    return this.findUnique({
+      where: { verificationToken: token },
+    });
+  }
+
+  /**
+   * Find user by password reset token (with all fields)
+   */
+  async findByPasswordResetToken(token: string): Promise<User | null> {
+    this.logQuery("findByPasswordResetToken", { token: "[REDACTED]" });
+    return this.findUnique({
+      where: { passwordResetToken: token },
+    });
+  }
+
+  /**
+   * Update user (generic update method)
+   */
+  async update(
+    id: string,
+    data: Partial<Prisma.UserUpdateInput>
+  ): Promise<SafeUser> {
+    this.logQuery("update", {
+      id,
+      data: { ...data, password: data.password ? "[REDACTED]" : undefined },
+    });
+
+    const user = await this.delegate.update({
+      where: { id },
+      data,
+    });
+
+    // Remove password before returning
+    const { password: _, ...safeUser } = user;
+    return safeUser as SafeUser;
   }
 }
 
