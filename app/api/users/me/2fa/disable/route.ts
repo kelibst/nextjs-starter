@@ -16,7 +16,7 @@ import {
 import { verifyPassword } from "@/lib/auth/password";
 import { userRepository } from "@/lib/repositories";
 import { disableTwoFactorSchema } from "@/lib/validations/two-factor";
-import { logActivity } from "@/lib/repositories/activity-log.repository";
+import { activityLogRepository } from "@/lib/repositories/activity-log.repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     await userRepository.disableTwoFactor(user.id);
 
     // Log activity
-    await logActivity({
+    await activityLogRepository.createLog({
       userId: user.id,
       action: "DISABLE_2FA",
       resource: "security",

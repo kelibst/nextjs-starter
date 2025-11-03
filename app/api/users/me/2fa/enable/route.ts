@@ -20,7 +20,7 @@ import {
 } from "@/lib/auth/two-factor";
 import { userRepository } from "@/lib/repositories";
 import { enableTwoFactorSchema } from "@/lib/validations/two-factor";
-import { logActivity } from "@/lib/repositories/activity-log.repository";
+import { activityLogRepository } from "@/lib/repositories/activity-log.repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     await userRepository.enableTwoFactor(user.id, secret, hashed);
 
     // Log activity
-    await logActivity({
+    await activityLogRepository.createLog({
       userId: user.id,
       action: "ENABLE_2FA",
       resource: "security",

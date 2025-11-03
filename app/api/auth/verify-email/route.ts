@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     // Log activity
     const identifier = getRateLimitIdentifier(request);
-    await activityLogRepository.create({
+    await activityLogRepository.createLog({
       userId: user.id,
       action: "VERIFY_EMAIL",
       resource: "auth",

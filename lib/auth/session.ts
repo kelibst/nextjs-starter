@@ -17,6 +17,8 @@ export interface SessionUser {
   username: string;
   email: string;
   role: Role;
+  emailVerified: boolean;
+  twoFactorEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

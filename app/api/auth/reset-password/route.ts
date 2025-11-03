@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
     // Log activity
     const identifier = getRateLimitIdentifier(request);
-    await activityLogRepository.create({
+    await activityLogRepository.createLog({
       userId: user.id,
       action: "RESET_PASSWORD",
       resource: "auth",

@@ -16,15 +16,20 @@ export interface ApiResponse<T = unknown> {
  *
  * @param data - Response data
  * @param status - HTTP status code (default: 200)
+ * @param options - Additional options (headers, etc.)
  * @returns NextResponse with success data
  */
-export function successResponse<T>(data: T, status: number = 200): NextResponse {
+export function successResponse<T>(
+  data: T,
+  status: number = 200,
+  options?: { headers?: HeadersInit }
+): NextResponse {
   return NextResponse.json(
     {
       success: true,
       data,
     } as ApiResponse<T>,
-    { status }
+    { status, headers: options?.headers }
   );
 }
 
@@ -33,15 +38,20 @@ export function successResponse<T>(data: T, status: number = 200): NextResponse 
  *
  * @param message - Error message
  * @param status - HTTP status code (default: 400)
+ * @param options - Additional options (headers, etc.)
  * @returns NextResponse with error message
  */
-export function errorResponse(message: string, status: number = 400): NextResponse {
+export function errorResponse(
+  message: string,
+  status: number = 400,
+  options?: { headers?: HeadersInit }
+): NextResponse {
   return NextResponse.json(
     {
       success: false,
       error: message,
     } as ApiResponse,
-    { status }
+    { status, headers: options?.headers }
   );
 }
 
@@ -100,6 +110,26 @@ export function forbiddenResponse(message: string = "Forbidden"): NextResponse {
  */
 export function notFoundResponse(message: string = "Not found"): NextResponse {
   return errorResponse(message, 404);
+}
+
+/**
+ * Create a conflict response
+ *
+ * @param message - Error message (default: "Conflict")
+ * @returns NextResponse with 409 status
+ */
+export function conflictResponse(message: string = "Conflict"): NextResponse {
+  return errorResponse(message, 409);
+}
+
+/**
+ * Create a bad request response
+ *
+ * @param message - Error message (default: "Bad request")
+ * @returns NextResponse with 400 status
+ */
+export function badRequestResponse(message: string = "Bad request"): NextResponse {
+  return errorResponse(message, 400);
 }
 
 /**

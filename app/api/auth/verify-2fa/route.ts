@@ -20,7 +20,7 @@ import {
 import { userRepository } from "@/lib/repositories";
 import { twoFactorVerifySchema } from "@/lib/validations/two-factor";
 import { createSession } from "@/lib/auth/session";
-import { logActivity } from "@/lib/repositories/activity-log.repository";
+import { activityLogRepository } from "@/lib/repositories/activity-log.repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     if (!isValid) {
       // Log failed 2FA attempt
-      await logActivity({
+      await activityLogRepository.createLog({
         userId: userId,
         action: "FAILED_2FA",
         resource: "auth",
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     const sessionResponse = await createSession(user.id, user.role);
 
     // Log successful 2FA login
-    await logActivity({
+    await activityLogRepository.createLog({
       userId: userId,
       action: "LOGIN_2FA",
       resource: "auth",
@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
           twoFactorEnabled: user.twoFactorEnabled,
         },
       },
+      200,
       { headers: sessionResponse.headers }
     );
   } catch (error) {

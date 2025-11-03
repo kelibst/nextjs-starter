@@ -34,9 +34,14 @@ export async function POST(request: NextRequest) {
         "Too many requests. Please try again later.",
         429,
         {
-          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
-          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
-          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          headers: {
+        {
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+            "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+            "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          },
+          },
         }
       );
     }
@@ -61,10 +66,14 @@ export async function POST(request: NextRequest) {
           message:
             "If the email exists, a password reset link has been sent.",
         },
+        200,
         {
-          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
-          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
-          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+            "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+            "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          },
+          },
         }
       );
     }
@@ -95,23 +104,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Log activity
-    await activityLogRepository.create({
+    await activityLogRepository.createLog({
       userId: user.id,
       action: "REQUEST_PASSWORD_RESET",
       resource: "auth",
       details: { email },
       ipAddress: identifier,
-      userAgent: request.headers.get("user-agent"),
+      userAgent: request.headers.get("user-agent") || undefined,
     });
 
     return successResponse(
       {
         message: "Password reset email sent successfully",
       },
+      200,
       {
-        "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
-        "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
-        "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+        headers: {
+          "X-RateLimit-Limit": rateLimit.limit?.toString() || "0",
+          "X-RateLimit-Remaining": rateLimit.remaining?.toString() || "0",
+          "X-RateLimit-Reset": rateLimit.reset?.toString() || "0",
+          },
+        },
       }
     );
   } catch (error) {
