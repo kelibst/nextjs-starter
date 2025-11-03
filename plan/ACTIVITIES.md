@@ -4,6 +4,13 @@ This file tracks major features and changes implemented in the Next.js Authentic
 
 ## 2025-11-03
 
+### ✅ Admin-Configurable Auth Settings (2FA & Email Verification Toggle)
+**Description:** Made email verification and 2FA opt-in via admin settings panel, allowing registration without RESEND_API_KEY.
+**Technical Notes:**
+- Created SystemSettings model; built lib/settings with getAuthSettings/updateAuthSettings (defaults: email=OFF, 2FA=OFF); email service now optional
+- Updated registration to respect settings; created admin settings API (GET/PATCH /api/admin/settings) with activity logging
+- Built SystemSettingsForm with Switch toggles; created admin/settings page accessible to ADMIN + SUPER_ADMIN roles
+
 ### ✅ Two-Factor Authentication (2FA) Implementation - COMPLETE
 **Description:** Implemented complete TOTP-based 2FA system with authenticator app support and backup codes.
 **Technical Notes:**

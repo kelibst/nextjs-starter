@@ -17,7 +17,8 @@ import {
 } from "@/lib/rate-limit";
 import { generateToken, getVerificationExpiry } from "@/lib/auth/tokens";
 import { sendVerificationEmail } from "@/lib/email/send";
-import { APP_URL } from "@/lib/email/resend";
+import { APP_URL, isEmailConfigured } from "@/lib/email/resend";
+import { getAuthSettings } from "@/lib/settings";
 
 /**
  * POST /api/auth/register
@@ -64,11 +65,23 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(validatedData.password);
 
-    // Generate verification token
-    const verificationToken = generateToken();
-    const verificationExpires = getVerificationExpiry();
+    // Get system settings to check if email verification is required
+    const settings = await getAuthSettings();
+    const shouldSendVerificationEmail =
+      settings.emailVerificationRequired && isEmailConfigured();
 
-    // Create user with default role and verification token
+    // Generate verification token only if email verification is required
+    let verificationToken: string | undefined;
+    let verificationExpires: Date | undefined;
+    let emailVerified = !settings.emailVerificationRequired; // Auto-verify if not required
+
+    if (shouldSendVerificationEmail) {
+      verificationToken = generateToken();
+      verificationExpires = getVerificationExpiry();
+      emailVerified = false;
+    }
+
+    // Create user with default role
     const user = await userRepository.createUser({
       username: validatedData.username,
       email: validatedData.email,
@@ -76,24 +89,26 @@ export async function POST(request: NextRequest) {
       role: Role.USER,
     });
 
-    // Update user with verification token
+    // Update user with verification status
     await userRepository.updateById(user.id, {
-      emailVerified: false,
-      verificationToken,
-      verificationExpires,
+      emailVerified,
+      verificationToken: verificationToken || null,
+      verificationExpires: verificationExpires || null,
     });
 
-    // Send verification email (don't block registration if email fails)
-    try {
-      const verificationUrl = `${APP_URL}/verify-email?token=${verificationToken}`;
-      await sendVerificationEmail(
-        validatedData.email,
-        validatedData.username,
-        verificationUrl
-      );
-    } catch (emailError) {
-      console.error("Failed to send verification email:", emailError);
-      // Continue with registration even if email fails
+    // Send verification email only if required and configured
+    if (shouldSendVerificationEmail && verificationToken) {
+      try {
+        const verificationUrl = `${APP_URL}/verify-email?token=${verificationToken}`;
+        await sendVerificationEmail(
+          validatedData.email,
+          validatedData.username,
+          verificationUrl
+        );
+      } catch (emailError) {
+        console.error("Failed to send verification email:", emailError);
+        // Continue with registration even if email fails
+      }
     }
 
     // Create session (auto-login after registration)
@@ -106,12 +121,16 @@ export async function POST(request: NextRequest) {
     });
 
     // Return user data (already safe from repository)
+    const message = shouldSendVerificationEmail
+      ? "Registration successful. Please check your email to verify your account."
+      : "Registration successful. Welcome!";
+
     return successResponse(
       {
-        message: "Registration successful. Please check your email to verify your account.",
+        message,
         user: {
           ...user,
-          emailVerified: false,
+          emailVerified,
         },
       },
       201,

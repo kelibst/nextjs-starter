@@ -36,7 +36,7 @@ const adminNavItems: AdminNavItem[] = [
     title: "Settings",
     href: getAdminPath("/settings"),
     icon: Settings,
-    roles: [Role.SUPER_ADMIN],
+    roles: [Role.ADMIN, Role.SUPER_ADMIN],
   },
 ];
 

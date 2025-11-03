@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Database, Server, Shield, Clock } from "lucide-react";
+import { AlertTriangle, Database, Server, Shield, Clock, Settings2 } from "lucide-react";
 import { toast } from "sonner";
+import { SystemSettingsForm } from "@/components/admin/system-settings-form";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,8 +20,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+interface AuthSettings {
+  emailVerificationRequired: boolean;
+  twoFactorRequired: boolean;
+  allowSelfRegistration: boolean;
+}
+
 export default function AdminSettingsPage() {
   const [stats, setStats] = useState<any>(null);
+  const [authSettings, setAuthSettings] = useState<AuthSettings | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchStats = async () => {
@@ -37,8 +45,21 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const fetchAuthSettings = async () => {
+    try {
+      const response = await fetch("/api/admin/settings");
+      const data = await response.json();
+      if (data.success) {
+        setAuthSettings(data.data.settings);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
+    fetchAuthSettings();
   }, []);
 
   const handleClearAllLogs = async () => {
@@ -67,6 +88,11 @@ export default function AdminSettingsPage() {
           System configuration and maintenance settings.
         </p>
       </div>
+
+      {/* Authentication Settings - Full Width */}
+      {authSettings && (
+        <SystemSettingsForm initialSettings={authSettings} />
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* System Information */}

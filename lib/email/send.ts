@@ -1,5 +1,5 @@
 import { render } from "@react-email/components";
-import { resend, FROM_EMAIL } from "./resend";
+import { resend, FROM_EMAIL, isEmailConfigured } from "./resend";
 import { VerificationEmail } from "@/emails/verification-email";
 import { PasswordResetEmail } from "@/emails/password-reset-email";
 
@@ -17,8 +17,17 @@ export async function sendEmail({
   subject,
   react,
 }: SendEmailOptions): Promise<{ success: boolean; error?: string }> {
+  // Check if email service is configured
+  if (!isEmailConfigured()) {
+    console.warn("Email service not configured - RESEND_API_KEY not set");
+    return {
+      success: false,
+      error: "Email service is not configured",
+    };
+  }
+
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await resend!.emails.send({
       from: FROM_EMAIL,
       to,
       subject,
